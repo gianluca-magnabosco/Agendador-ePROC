@@ -11,10 +11,9 @@ Esse programa foi criado com o intuito de efetuar o download das planilhas de in
 O programa foi feito para uso no navegador Google Chrome, porém sintam-se a vontade para alterar o código para compatibilidade com outros navegadores. </br >
 
 O script já foi instalado como programa e depositado nesse repositório, porém para que o programa funcione adequadamente, o recomendado seria instalar o programa utilizando o `PyInstaller`, com a linha de comando já explicitada no código e que segue:
-```md 
+```python
 python -m PyInstaller --onedir --windowed --icon=icone.ico --name="Agendador ePROC" Agendador.py
 ```
-
 
 Ao instalar o programa, é necessário, antes de executá-lo, criar um projeto na Google Cloud Platform, que pode ser realizado no link abaixo:
 * _<https://console.cloud.google.com/>_
@@ -25,4 +24,4 @@ Ao instalar o programa, é necessário, antes de executá-lo, criar um projeto n
 ## Informações
 * O arquivo do driver do navegador `(chromedriver.exe)` deve estar dentro da pasta `./Agendador ePROC/dist/Agendador ePROC/`
 * O arquivo de icone - `icone.ico` está disponível no repositório, e pode ser também realocado à pasta `./Agendador ePROC/dist/Agendador ePROC/`
-* O arquivo que contém a imagem de fundo do programa `(background.png)` também deve ser movida à pasta `./Agendador ePROC/dist/Agendador ePROC/` e também está contida no repositório.
+* O arquivo que contém a imagem de fundo do programa `(background.png)` também pode ser movida à pasta `./Agendador ePROC/dist/Agendador ePROC/` e também está contida no repositório.
