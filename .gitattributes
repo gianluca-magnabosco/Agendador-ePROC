@@ -1,1 +1,1 @@
-*.html tex linguist-detectable=false
+*.html, tex linguist-detectable=false
