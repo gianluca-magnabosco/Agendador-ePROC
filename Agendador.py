@@ -174,8 +174,8 @@ def runcode():
     # web browser download xls file
     # configuring web browser
     options = Options()
-    login = "sc009738"
-    passwd = "212325"
+    login = "LOGIN"
+    passwd = "PASSWORD"
     options.add_argument("start-maximized")
     options.add_argument("--headless")
     preferences = {"download.default_directory": local_path,
