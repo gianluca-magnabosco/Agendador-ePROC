@@ -27,7 +27,9 @@ from google_auth_oauthlib.flow import Flow, InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 from google.auth.transport.requests import Request
-
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC  
 
 
 # delete inconvenient, possible waste files
@@ -174,10 +176,10 @@ def runcode():
     # web browser download xls file
     # configuring web browser
     options = Options()
-    login = "LOGIN"
-    passwd = "PASSWD"
+    login = "sc009738"
+    passwd = "212325"
     options.add_argument("start-maximized")
-    options.add_argument("--headless")
+    #options.add_argument("--headless")
     preferences = {"download.default_directory": local_path,
                     "directory_upgrade": True}
     options.add_experimental_option("prefs", preferences)                   
@@ -185,8 +187,10 @@ def runcode():
     # open web browser
     driverpath = "/chromedriver.exe"
     driver = webdriver.Chrome(executable_path = local_path + driverpath, options=options)
+    driver.implicitly_wait(10)
     driver.get("https://eproc1g.tjsc.jus.br/eproc/externo_controlador.php?acao=principal")
-    time.sleep(1)
+    #time.sleep(1)
+
 
     # login
     loginxpath = driver.find_element(By.XPATH, '//*[@id="txtUsuario"]')
@@ -201,11 +205,10 @@ def runcode():
     # get to file webpage
     scbuttonxpath = driver.find_element(By.XPATH, '//*[@id="tr0"]')
     scbuttonxpath.click()
-    time.sleep(2)
 
     intimacoesxpath = driver.find_element(By.XPATH, '//*[@id="conteudoCitacoesIntimacoesSC"]/div[2]/table/tbody/tr[1]/td[2]/a')
     intimacoesxpath.click()
-    time.sleep(1)
+
 
     newURl = driver.window_handles[1]
     driver.switch_to.window(newURl)
@@ -213,14 +216,14 @@ def runcode():
     # download file
     gerarplanilhaid = driver.find_element(By.ID, 'sbmPlanilha')
     gerarplanilhaid.click()
-    time.sleep(2)
-    driver.quit()
+    time.sleep(1)
 
     # rename downloaded file
     filename = glob.glob('*.xls')
     filename = ''.join(filename)
     finalfilename = filename[:16] + '.xls'
     os.rename(filename, finalfilename)
+
 
     # convert to xlsx
     p.save_book_as(file_name= finalfilename,
@@ -229,43 +232,32 @@ def runcode():
     os.remove(finalfilename)
 
 
-    filename = ''
-    finalfilename = ''
+
+    oldURl = driver.window_handles[0]
+    driver.switch_to.window(oldURl)
+    wait = WebDriverWait(driver, 10)
+    changebuttonxpath = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="navbar"]/div/div[1]/div[3]/form')))
+    #changebuttonxpath = driver.find_element(By.XPATH, '//*[@id="navbar"]/div/div[1]/div[3]/form')
+    changebuttonxpath.click()
 
 
-    # web browser download xls file PARANA
-    # open web browser
-    driver = webdriver.Chrome(executable_path = local_path + driverpath, options=options)
-    driver.get("https://eproc1g.tjsc.jus.br/eproc/externo_controlador.php?acao=principal")
-    time.sleep(1)
+    changestate = driver.find_element(By.XPATH, '//*[@id="navbar"]/div/div[1]/div[3]/form/select' )
+    changestate.send_keys(u'\ue015', u'\ue007')
 
-    # login
-    loginxpath = driver.find_element(By.XPATH, '//*[@id="txtUsuario"]')
-    loginxpath.send_keys(login)
 
-    passwxpath = driver.find_element(By.XPATH, '//*[@id="pwdSenha"]')
-    passwxpath.send_keys(passwd)
-
-    loginbuttonxpath = driver.find_element(By.XPATH, '//*[@id="sbmEntrar"]')
-    loginbuttonxpath.click()
-
-    # get to file webpage
-    prbuttonxpath = driver.find_element(By.XPATH, '//*[@id="tr1"]')
-    prbuttonxpath.click()
-    time.sleep(2)
 
     intimacoesxpath = driver.find_element(By.XPATH, '//*[@id="conteudoCitacoesIntimacoesSC"]/div[2]/table/tbody/tr[1]/td[2]/a')
     intimacoesxpath.click()
-    time.sleep(1)
+
 
     newURl = driver.window_handles[1]
     driver.switch_to.window(newURl)
 
+
     # download file
     gerarplanilhaid = driver.find_element(By.ID, 'sbmPlanilha')
     gerarplanilhaid.click()
-    time.sleep(2)
-    driver.quit()
+    time.sleep(1)
 
     # rename downloaded file
     filename = glob.glob('*.xls')
@@ -278,8 +270,11 @@ def runcode():
     p.save_book_as(file_name= finalfilename,
                 dest_file_name='intimacaopr.xlsx')
 
-    
     os.remove(finalfilename)
+
+
+    driver.quit()
+
 
 
 
