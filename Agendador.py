@@ -20,7 +20,6 @@ from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 
 
-
 # delete inconvenient, possible waste files
 local_path = os.getcwd()
 listardir = os.listdir(local_path)
@@ -47,7 +46,7 @@ if not os.path.exists(path):
     shortcut.save()
 
 
-
+# create api service function
 def create_service(client_secret_file, api_name, api_version, *scopes, prefix=''):
 	CLIENT_SECRET_FILE = client_secret_file
 	API_SERVICE_NAME = api_name
@@ -86,16 +85,13 @@ def create_service(client_secret_file, api_name, api_version, *scopes, prefix=''
 
 
 
-
+# define and create service
 CLIENT_SECRET_FILE = "client_secret.json"
 API_NAME = 'calendar'
 API_VERSION = 'v3'
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 
-
-
 service = create_service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
-
 
 
 # center window
@@ -106,12 +102,12 @@ def center_window(width=860,height=640):
     y = (screen_height/2) - (height/2)
     root.geometry('%dx%d+%d+%d' % (width, height, x, y))
 
-
 # close program confirmation
 def on_closeroot():
     close = messagebox.askokcancel("Confirmação", "Tem certeza que deseja fechar o programa?")
     if close:
         root.destroy()
+
 
 # main function
 def runcode():
@@ -127,7 +123,7 @@ def runcode():
     button1.configure(state = 'enabled')
     status.destroy()
 
-
+    # calendar body & list all calendars
     calendar_body = {
         'summary': 'Intimações ePROC',
         'timeZone': 'America/Sao_Paulo',
@@ -193,7 +189,7 @@ def runcode():
     intimacoesxpath = driver.find_element(By.XPATH, '//*[@id="conteudoCitacoesIntimacoesSC"]/div[2]/table/tbody/tr[1]/td[2]/a')
     intimacoesxpath.click()
 
-
+    # switch tabs
     newURl = driver.window_handles[1]
     driver.switch_to.window(newURl)
 
@@ -212,25 +208,27 @@ def runcode():
     p.save_book_as(file_name= finalfilename,
                 dest_file_name='intimacaosc.xlsx')
 
+    # delete xls file
     os.remove(finalfilename)
 
     time.sleep(1)
-
+    
+    # switch tabs
     oldURl = driver.window_handles[0]
     driver.switch_to.window(oldURl)
 
-
+    # go back to menu
     driver.back()
     time.sleep(1)
 
+    # get to download page
     prbuttonxpath = driver.find_element(By.XPATH, '//*[@id="tr1"]')
     prbuttonxpath.click()
-
 
     intimacoesxpath = driver.find_element(By.XPATH, '//*[@id="conteudoCitacoesIntimacoesSC"]/div[2]/table/tbody/tr[1]/td[2]/a')
     intimacoesxpath.click()
 
-
+    # switch tabs
     newURl = driver.window_handles[1]
     driver.switch_to.window(newURl)
 
@@ -251,11 +249,11 @@ def runcode():
     p.save_book_as(file_name= finalfilename,
                 dest_file_name='intimacaopr.xlsx')
 
+    # delete xls file
     os.remove(finalfilename)
 
-
+    # finish webbrowser
     driver.quit()
-
 
 
 
@@ -383,7 +381,6 @@ def runcode():
     for i in range(0,2):
         ws.delete_rows(1)
 
-
     for i in range(0,2):
         ws.delete_cols(1)
 
@@ -394,7 +391,7 @@ def runcode():
     # row number variable
     max_rows = ws.max_row
 
-    # append list variables
+    # clear lists
     subj = []
     date = []
 
@@ -402,7 +399,6 @@ def runcode():
     # copy subject
     for i in range(1,max_rows+1):
         subj.append(ws.cell(row = i, column = 1).value)
-
 
     # copy date
     for i in range(1,max_rows+1):
@@ -415,7 +411,7 @@ def runcode():
         i += 1
 
 
-    # append lists
+    # clear lists
     mes = []
     dia = []
     ano = []
@@ -476,7 +472,7 @@ def runcode():
         status1.destroy()
         on_closetop() 
 
-
+    # success pop up
     closeconfirmation = messagebox.showinfo("Sucesso!", "O programa foi executado com sucesso!")
     if closeconfirmation:
         endprogram()
