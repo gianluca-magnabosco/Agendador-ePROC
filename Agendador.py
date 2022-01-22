@@ -507,10 +507,15 @@ status = tk.Label(text="Seja bem-vindo!",wraplength=200,font=('',15,'bold'),bg='
 status.pack()
 status.place(relx=0.5, rely=0.52, anchor=CENTER)
 
+# version
+version = tk.Label(text="Versão: 1.15.6",font=('',7),bg="white")
+version.pack()
+version.place(relx=0.05, rely=0.98, anchor=CENTER)
+
 # credits
 feitopor = tk.Label(text="Programa criado por: Gianluca Notari Magnabosco da Silva",font=('',7),bg="white")
 feitopor.pack()
-feitopor.place(relx=0.85, rely=0.98, anchor=CENTER)
+feitopor.place(relx=0.84, rely=0.98, anchor=CENTER)
 
 # run code button
 st = Style()
