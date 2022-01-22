@@ -56,13 +56,13 @@ if not os.path.exists(path):
     shortcut.save()
 
 
-# create api service function
+
 def create_service(client_secret_file, api_name, api_version, *scopes, prefix=''):
 	CLIENT_SECRET_FILE = client_secret_file
 	API_SERVICE_NAME = api_name
 	API_VERSION = api_version
 	SCOPES = [scope for scope in scopes[0]]
-	
+
 	cred = None
 	working_dir = os.getcwd()
 	token_dir = 'token files'
@@ -71,7 +71,6 @@ def create_service(client_secret_file, api_name, api_version, *scopes, prefix=''
 	# check if token dir exists first, if not, create the folder
 	if not os.path.exists(os.path.join(working_dir, token_dir)):
 		os.mkdir(os.path.join(working_dir, token_dir))
-
 	if os.path.exists(os.path.join(working_dir, token_dir, pickle_file)):
 		with open(os.path.join(working_dir, token_dir, pickle_file), 'rb') as token:
 			cred = pickle.load(token)
@@ -82,10 +81,8 @@ def create_service(client_secret_file, api_name, api_version, *scopes, prefix=''
 		else:
 			flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_FILE, SCOPES)
 			cred = flow.run_local_server()
-
 		with open(os.path.join(working_dir, token_dir, pickle_file), 'wb') as token:
 			pickle.dump(cred, token)
-
 	try:
 		service = build(API_SERVICE_NAME, API_VERSION, credentials=cred)
 		print(API_SERVICE_NAME, API_VERSION, 'service created successfully')
@@ -97,11 +94,6 @@ def create_service(client_secret_file, api_name, api_version, *scopes, prefix=''
 		return None
 
 
-# convert datetime function
-def convert_to_RFC_datetime(year=1900, month=1, day=1, hour=0, minute=0):
-	dt = datetime.datetime(year, month, day, hour, minute, 0).isoformat() + 'Z'
-	return dt
-
 
 
 CLIENT_SECRET_FILE = "client_secret.json"
@@ -112,33 +104,6 @@ SCOPES = ['https://www.googleapis.com/auth/calendar']
 
 
 service = create_service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
-
-# list calendars
-calendar_list = service.calendarList().list(pageToken=None,maxResults=10).execute()
-
-
-# delete already existing calendar
-for calendar_list_entry in calendar_list['items']:  
-    if 'Intimações ePROC' in calendar_list_entry['summary']:
-        id = calendar_list_entry['id'] 
-        service.calendars().delete(calendarId=id).execute()
-
-
-# create new calendar
-calendar_body = {
-    'summary': 'Intimações ePROC',
-    'timeZone': 'America/Sao_Paulo',
-}
-service.calendars().insert(body=calendar_body).execute()
-
-
-# list calendars
-calendar_list = service.calendarList().list(pageToken=None,maxResults=6).execute()
-
-# get calendar id
-for calendar_list_entry in calendar_list['items']:
-    if 'Intimações ePROC' in calendar_list_entry['summary']:
-        id = calendar_list_entry['id'] 
 
 
 
@@ -172,13 +137,45 @@ def runcode():
     status.destroy()
 
 
+    calendar_body = {
+        'summary': 'Intimações ePROC',
+        'timeZone': 'America/Sao_Paulo',
+    }
+
+    calendar_list = service.calendarList().list(pageToken=None,maxResults=10).execute()
+
+
+    # delete already existing calendar
+    for calendar_list_entry in calendar_list['items']:  
+        if 'Intimações ePROC' in calendar_list_entry['summary']:
+            id = calendar_list_entry['id'] 
+            service.calendars().delete(calendarId=id).execute()
+
+
+    # create new calendar
+    service.calendars().insert(body=calendar_body).execute()
+
+
+    # list calendars
+    calendar_list = service.calendarList().list(pageToken=None,maxResults=6).execute()
+
+    # get calendar id
+    for calendar_list_entry in calendar_list['items']:
+        if 'Intimações ePROC' in calendar_list_entry['summary']:
+            id = calendar_list_entry['id'] 
+
+
+
+
+
+
     # ------------------------------------- SANTA CATARINA ----------------------------------
 
     # web browser download xls file
     # configuring web browser
     options = Options()
-    login = "INSERT_LOGIN_HERE"                                     # INSERIR LOGIN DO EPROC
-    passwd = "INSERT_PASSWORD_HERE"                                 # INSERIR SENHA DO EPROC
+    login = "sc009738"
+    passwd = "212325"
     options.add_argument("start-maximized")
     options.add_argument("--headless")
     preferences = {"download.default_directory": local_path,
@@ -229,218 +226,14 @@ def runcode():
     p.save_book_as(file_name= finalfilename,
                 dest_file_name='intimacaosc.xlsx')
 
-
-    # load file, sheet
-    wb = load_workbook('intimacaosc.xlsx')
-    ws = wb.active
-
-
-    # formatting excel chart
-    for i in range(0,2):
-        ws.delete_rows(1)
-
-    ws.insert_rows(1)
-
-    for i in range(0,2):
-        ws.delete_cols(1)
-
-    for i in range(0,5):
-        ws.delete_cols(2)
-
-
-    # row number variable
-    max_rows = ws.max_row-1
-
-    # append list variables
-    subj = []
-    date = []
-    filetime = []
-
-
-    # copy subject
-    for i in range(1,max_rows+2):
-        subj.append(ws.cell(row = i, column = 1).value)
-
-    # paste into description
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 7).value = subj[i-1]
-
-
-    # copy date
-    for i in range(1,max_rows+2):
-        date.append(ws.cell(row = i, column = 2).value)
-
-    # stringify date
-    i = 0
-    while i < max_rows:
-        i += 1
-        date[i] = date[i].strftime("%x")
-
-    # paste date 
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 2).value = date[i-1]
-
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 4).value = date[i-1]
-
-
-
-    # fill start time
-    a = 0
-    for i in range(1,max_rows+2):
-        if i < 18:
-            ws.cell(row = i, column = 3).value = "{}:00".format(i)
-        elif i >= 18:
-            a += 1
-            ws.cell(row = i, column = 3).value = "{}:00".format(a)
-            if a >= 17:
-                a = 0
-
-    # copy start time
-    for i in range(1,max_rows+2):
-        filetime.append(ws.cell(row = i, column = 3).value)
-
-    # paste end time
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 5).value = filetime[i-1]
-
-
-
-    # fill all day event
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 6).value = "FALSE"  
-
-
-    # fill location
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 8).value = "ePROC-SC" 
-
-
-    # fill private
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 9).value = "TRUE"    
-
-
-
-    # header
-    cabecalho = ['Subject', 'Start Date', 'Start Time', 'End Date', 'End Time', 'All Day Event', 'Description', 'Location', 'Private']
-    for col in range(0,9):
-        char = chr(65 + col)
-        ws[char + '1'] = cabecalho[col]
-
-
-
-    # save file
-    wb.save('sc.xlsx')
-
-
-    # insert events to google calendar function
-    def insert_events(location, color):
-        for i in range(0,max_rows):
-            adjust_timezone = 3
-            adjust_timezone_endtime = 4
-            event_request_body = {
-                'start':{
-                    'dateTime': convert_to_RFC_datetime(int(ano[i]), int(mes[i]), int(dia[i]), int(tempo[i]) + adjust_timezone, 0),
-                    'timeZone': 'America/Sao_Paulo',
-                },
-                'end':{
-                    'dateTime': convert_to_RFC_datetime(int(ano[i]), int(mes[i]), int(dia[i]), int(tempo[i]) + adjust_timezone_endtime, 0),
-                    'timeZone': 'America/Sao_Paulo',
-                },
-                'summary': subj[i],
-                'description': subj[i],
-                'location': location,
-                'colorId': color,
-                #'attendees':[
-                #    {
-                #        'email': '',
-                #        'optional': False,
-                #        'responseStatus': 'accepted',
-                #    }
-                #],
-                #'reminders': {
-                #    'useDefault': False,
-                #    'overrides':[
-                #        {'method': 'email', 'minutes': 30},
-                #    ]
-                #}
-            }
-            service.events().insert(calendarId=id, body=event_request_body).execute()
-
-
-
-
-    # load xlsx file containing the events
-    wb = load_workbook('sc.xlsx')
-    ws = wb.active
-
-    # row number variable
-    max_rows = ws.max_row-1
-
-    # append lists
-    subj = []
-    date = []
-    filetime = []
-    tempo = []
-    mes = []
-    dia = []
-    ano = []
-
-
-    # copy subject
-    for i in range(2,max_rows+2):
-        subj.append(ws.cell(row = i, column = 1).value)
-
-
-    # copy date
-    for i in range(1,max_rows+2):
-        date.append(ws.cell(row = i, column = 2).value)
-
-
-    # copy start time
-    for i in range(1,max_rows+2):
-        filetime.append(ws.cell(row = i, column = 3).value)
-
-
-
-    # format time
-    for i in range(1,max_rows+1):
-        tempo.append(filetime[i])
-    tempo = [x[:-3] for x in tempo]
-
-
-    # format month
-    for i in range(1,max_rows+1):
-        mes.append(date[i])
-    mes = [x[:-6] for x in mes]
-
-
-    # format day
-    for i in range(1,max_rows+1):
-        dia.append(date[i])
-    dia = [x[3:-3] for x in dia]
-
-
-    # format year
-    for i in range(1,max_rows+1):
-        ano.append(date[i])
-    ano = ['20' + x[6:] for x in ano]
-
-
-    # insert events
-    sc = "ePROC-SC"
-    insert_events(sc, 7)    
-
-
-    # delete no longer needed files
     os.remove(finalfilename)
-    os.remove('intimacaosc.xlsx')
 
 
-    # -------------------------------------- PARANA ----------------------------------------------------
+    filename = ''
+    finalfilename = ''
 
-    # web browser download xls file
+
+    # web browser download xls file PARANA
     # open web browser
     driver = webdriver.Chrome(executable_path = local_path + driverpath, options=options)
     driver.get("https://eproc1g.tjsc.jus.br/eproc/externo_controlador.php?acao=principal")
@@ -485,6 +278,125 @@ def runcode():
     p.save_book_as(file_name= finalfilename,
                 dest_file_name='intimacaopr.xlsx')
 
+    
+    os.remove(finalfilename)
+
+
+
+
+
+    # insert events to google calendar function
+    def insert_events(location, color):
+        all_day_event_true_start = []
+        all_day_event_true_end = []
+        for i in range(0,max_rows):
+            all_day_event_true_start.append("{}-{}-{}".format(ano[i],mes[i],dia[i]))
+            all_day_event_true_end.append("{}-{}-{}".format(ano[i],mes[i],dia[i]))
+            event_request_body = {
+                'start':{
+                    'date': all_day_event_true_start[i],
+                    'timeZone': 'America/Sao_Paulo',
+                },
+                'end':{
+                    'date': all_day_event_true_end[i],
+                    'timeZone': 'America/Sao_Paulo',
+                },
+                'summary': subj[i],
+                'description': subj[i],
+                'location': location,
+                'colorId': color,
+                #'attendees':[
+                #    {
+                #        'email': 'rasderfarr_gaguigo1@hotmail.com',
+                #        'optional': False,
+                #        'responseStatus': 'accepted',
+                #    }
+                #],
+                #'reminders': {
+                #    'useDefault': False,
+                #    'overrides':[
+                #        {'method': 'email', 'minutes': 30},
+                #    ]
+                #}
+            }
+            service.events().insert(calendarId=id, body=event_request_body).execute()
+
+    
+
+    # load file, sheet
+    wb = load_workbook('intimacaosc.xlsx')
+    ws = wb.active
+
+
+    # formatting excel sheet
+    for i in range(0,2):
+        ws.delete_rows(1)
+
+    for i in range(0,2):
+        ws.delete_cols(1)
+
+    for i in range(0,5):
+        ws.delete_cols(2)
+
+
+    # row number variable
+    max_rows = ws.max_row
+
+    # append list variables
+    subj = []
+    date = []
+
+    # copy subject
+    for i in range(1,max_rows+1):
+        subj.append(ws.cell(row = i, column = 1).value)
+
+    # copy date
+    for i in range(1,max_rows+1):
+        date.append(ws.cell(row = i, column = 2).value)
+
+    # stringify date
+    i = 0
+    while i < max_rows:
+        date[i] = date[i].strftime("%x")
+        i += 1
+
+
+
+    # append lists
+    mes = []
+    dia = []
+    ano = []
+
+
+    # format month
+    for i in range(0,max_rows):
+        mes.append(date[i])
+    mes = [x[:-6] for x in mes]
+
+
+    # format day
+    for i in range(0,max_rows):
+        dia.append(date[i])
+    dia = [x[3:-3] for x in dia]
+
+
+    # format year
+    for i in range(0,max_rows):
+        ano.append(date[i])
+    ano = ['20' + x[6:] for x in ano]
+
+
+    # insert events
+    sc = "ePROC-SC"
+    insert_events(sc, 7)    
+
+
+    # delete no longer needed files
+    os.remove('intimacaosc.xlsx')
+
+
+    # -------------------------------------- PARANA ----------------------------------------------------
+
 
     # load file, sheet
     wb = load_workbook('intimacaopr.xlsx')
@@ -495,7 +407,6 @@ def runcode():
     for i in range(0,2):
         ws.delete_rows(1)
 
-    ws.insert_rows(1)
 
     for i in range(0,2):
         ws.delete_cols(1)
@@ -505,146 +416,51 @@ def runcode():
 
 
     # row number variable
-    max_rows = ws.max_row-1
+    max_rows = ws.max_row
 
     # append list variables
     subj = []
     date = []
-    filetime = []
 
 
     # copy subject
-    for i in range(1,max_rows+2):
+    for i in range(1,max_rows+1):
         subj.append(ws.cell(row = i, column = 1).value)
-
-    # paste into description
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 7).value = subj[i-1]
-
 
 
     # copy date
-    for i in range(1,max_rows+2):
+    for i in range(1,max_rows+1):
         date.append(ws.cell(row = i, column = 2).value)
 
     # stringify date
     i = 0
     while i < max_rows:
-        i += 1
         date[i] = date[i].strftime("%x")
-
-    # paste date 
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 2).value = date[i-1]
-
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 4).value = date[i-1]
+        i += 1
 
 
 
-    # fill start time
-    a = 0
-    for i in range(1,max_rows+2):
-        if i < 18:
-            ws.cell(row = i, column = 3).value = "{}:00".format(i)
-        elif i >= 18:
-            a += 1
-            ws.cell(row = i, column = 3).value = "{}:00".format(a)
-            if a >= 17:
-                a = 0
-
-    # copy start time
-    for i in range(1,max_rows+2):
-        filetime.append(ws.cell(row = i, column = 3).value)
-
-    # paste end time
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 5).value = filetime[i-1]
-
-
-
-    # fill all day event
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 6).value = "FALSE"  
-
-
-    # fill location
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 8).value = "ePROC-PR" 
-
-
-    # fill private
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 9).value = "TRUE"    
-
-
-
-    # header
-    cabecalho = ['Subject', 'Start Date', 'Start Time', 'End Date', 'End Time', 'All Day Event', 'Description', 'Location', 'Private']
-    for col in range(0,9):
-        char = chr(65 + col)
-        ws[char + '1'] = cabecalho[col]
-
-
-
-    # save file
-    wb.save('pr.xlsx')
-
-
-
-
-    # load xlsx file containing the events
-    wb = load_workbook('pr.xlsx')
-    ws = wb.active
-
-    # row number variable
-    max_rows = ws.max_row-1
 
     # append lists
-    subj = []
-    date = []
-    filetime = []
-    tempo = []
     mes = []
     dia = []
     ano = []
 
-    # copy subject
-    for i in range(2,max_rows+2):
-        subj.append(ws.cell(row = i, column = 1).value)
-
-
-    # copy date
-    for i in range(1,max_rows+2):
-        date.append(ws.cell(row = i, column = 2).value)
-
-
-    # copy start time
-    for i in range(1,max_rows+2):
-        filetime.append(ws.cell(row = i, column = 3).value)
-
-
-
-    # format time
-    for i in range(1,max_rows+1):
-        tempo.append(filetime[i])
-    tempo = [x[:-3] for x in tempo]
-
 
     # format month
-    for i in range(1,max_rows+1):
+    for i in range(0,max_rows):
         mes.append(date[i])
     mes = [x[:-6] for x in mes]
 
 
     # format day
-    for i in range(1,max_rows+1):
+    for i in range(0,max_rows):
         dia.append(date[i])
     dia = [x[3:-3] for x in dia]
 
 
     # format year
-    for i in range(1,max_rows+1):
+    for i in range(0,max_rows):
         ano.append(date[i])
     ano = ['20' + x[6:] for x in ano]
 
@@ -654,10 +470,12 @@ def runcode():
 
 
     # delete no longer needed files
-    os.remove(finalfilename)
-    os.remove('intimacaopr.xlsx')
+    #os.remove('intimacaopr.xlsx')
 
     # ----------------------------------------------------------------------------------------------
+
+
+
 
     # dynamic GUI
     status1 = tk.Label(text="Concluído!",wraplength=200,font=('',9,'bold'),bg='white')
