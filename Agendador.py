@@ -4,14 +4,8 @@ from tkinter import messagebox
 from tkinter.font import BOLD
 from tkinter.ttk import *
 from tkinter.constants import CENTER, TOP, DISABLED
-import openpyxl as xl
-from openpyxl import Workbook, load_workbook
+from openpyxl import load_workbook
 import pyexcel as p
-import pyexcel_xls
-import pyexcel_xlsx
-from datetime import datetime
-import pandas as pd
-import selenium
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import os
@@ -21,15 +15,10 @@ import glob
 import winshell
 from win32com.client import Dispatch
 import pickle
-import datetime
-from collections import namedtuple
-from google_auth_oauthlib.flow import Flow, InstalledAppFlow
+from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 from google.auth.transport.requests import Request
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC  
+
 
 
 # delete inconvenient, possible waste files
