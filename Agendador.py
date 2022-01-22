@@ -159,7 +159,7 @@ def runcode():
 
 
     # list calendars
-    calendar_list = service.calendarList().list(pageToken=None,maxResults=6).execute()
+    calendar_list = service.calendarList().list(pageToken=None,maxResults=8).execute()
 
     # get calendar id
     for calendar_list_entry in calendar_list['items']:
@@ -169,17 +169,13 @@ def runcode():
 
 
 
-
-
-    # ------------------------------------- SANTA CATARINA ----------------------------------
-
-    # web browser download xls file
+    # web browser download xls files
     # configuring web browser
     options = Options()
-    login = "sc009738"
-    passwd = "212325"
+    login = "LOGIN"
+    passwd = "PASSWD"
     options.add_argument("start-maximized")
-    #options.add_argument("--headless")
+    options.add_argument("--headless")
     preferences = {"download.default_directory": local_path,
                     "directory_upgrade": True}
     options.add_experimental_option("prefs", preferences)                   
@@ -187,9 +183,8 @@ def runcode():
     # open web browser
     driverpath = "/chromedriver.exe"
     driver = webdriver.Chrome(executable_path = local_path + driverpath, options=options)
-    driver.implicitly_wait(10)
+    driver.implicitly_wait(15)
     driver.get("https://eproc1g.tjsc.jus.br/eproc/externo_controlador.php?acao=principal")
-    #time.sleep(1)
 
 
     # login
@@ -224,26 +219,23 @@ def runcode():
     finalfilename = filename[:16] + '.xls'
     os.rename(filename, finalfilename)
 
-
     # convert to xlsx
     p.save_book_as(file_name= finalfilename,
                 dest_file_name='intimacaosc.xlsx')
 
     os.remove(finalfilename)
 
-
+    time.sleep(1)
 
     oldURl = driver.window_handles[0]
     driver.switch_to.window(oldURl)
-    wait = WebDriverWait(driver, 10)
-    changebuttonxpath = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="navbar"]/div/div[1]/div[3]/form')))
-    #changebuttonxpath = driver.find_element(By.XPATH, '//*[@id="navbar"]/div/div[1]/div[3]/form')
-    changebuttonxpath.click()
 
 
-    changestate = driver.find_element(By.XPATH, '//*[@id="navbar"]/div/div[1]/div[3]/form/select' )
-    changestate.send_keys(u'\ue015', u'\ue007')
+    driver.back()
+    time.sleep(1)
 
+    prbuttonxpath = driver.find_element(By.XPATH, '//*[@id="tr1"]')
+    prbuttonxpath.click()
 
 
     intimacoesxpath = driver.find_element(By.XPATH, '//*[@id="conteudoCitacoesIntimacoesSC"]/div[2]/table/tbody/tr[1]/td[2]/a')
@@ -274,8 +266,6 @@ def runcode():
 
 
     driver.quit()
-
-
 
 
 
@@ -318,6 +308,8 @@ def runcode():
 
     
 
+    # ------------------------------------- SANTA CATARINA ----------------------------------
+
     # load file, sheet
     wb = load_workbook('intimacaosc.xlsx')
     ws = wb.active
@@ -356,7 +348,6 @@ def runcode():
         i += 1
 
 
-
     # append lists
     mes = []
     dia = []
@@ -388,6 +379,7 @@ def runcode():
 
     # delete no longer needed files
     os.remove('intimacaosc.xlsx')
+
 
 
     # -------------------------------------- PARANA ----------------------------------------------------
@@ -434,8 +426,6 @@ def runcode():
         i += 1
 
 
-
-
     # append lists
     mes = []
     dia = []
@@ -465,10 +455,9 @@ def runcode():
 
 
     # delete no longer needed files
-    #os.remove('intimacaopr.xlsx')
+    os.remove('intimacaopr.xlsx')
 
     # ----------------------------------------------------------------------------------------------
-
 
 
 
