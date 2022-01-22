@@ -175,7 +175,7 @@ def runcode():
     # configuring web browser
     options = Options()
     login = "LOGIN"
-    passwd = "PASSWORD"
+    passwd = "PASSWD"
     options.add_argument("start-maximized")
     options.add_argument("--headless")
     preferences = {"download.default_directory": local_path,
