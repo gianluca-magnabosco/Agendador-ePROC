@@ -23,6 +23,7 @@ Ao instalar o programa, é necessário, antes de executá-lo, criar um projeto n
 * Renomeie o arquivo baixado para _`client_secret.json`_ e coloque na pasta `./Agendador ePROC/dist/Agendador ePROC/`
 
 ## Informações
-* O arquivo do driver do navegador `(chromedriver.exe)` deve estar dentro da pasta `./Agendador ePROC/dist/Agendador ePROC/`
-* O arquivo de icone - `icone.ico` está disponível no repositório, e pode ser também realocado à pasta `./Agendador ePROC/dist/Agendador ePROC/`
-* O arquivo que contém a imagem de fundo do programa `(background.png)` também pode ser movida à pasta `./Agendador ePROC/dist/Agendador ePROC/` e também está contida no repositório.
+* Os arquivos que constam na pasta [trinity of five](https://github.com/gianluca-magnabosco/Agendador-ePROC/tree/main/trinity%20of%20five) devem ser inseridos na pasta `./Agendador ePROC/dist/Agendador ePROC/` para funcionamento do programa: 
+  - O arquivo do driver do navegador `(chromedriver.exe)` deve estar dentro da pasta `./Agendador ePROC/dist/Agendador ePROC/` para que o programa funcione.
+  - O arquivo de icone - `icone.ico` está disponível no repositório, e pode ser também realocado à pasta.
+  - O arquivo `(background.png)` contém a imagem de fundo do programa, também pode ser movida à pasta.
