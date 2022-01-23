@@ -61,6 +61,7 @@ def create_service(client_secret_file, api_name, api_version, *scopes, prefix=''
 	API_VERSION = api_version
 	SCOPES = [scope for scope in scopes[0]]
 
+
 	cred = None
 	working_dir = os.getcwd()
 	token_dir = 'token files'
@@ -126,19 +127,21 @@ def insert_login():
         login = username.get()
         passwd = password.get()
         root.attributes("-topmost", True) 
+
         top.destroy()
+        button1.configure(state = 'disabled')
         if login > "1" and passwd > "1":
             button1.configure(state = 'enabled')
         else:
             button1.configure(state = 'disabled')
         return login, passwd
+        
     
     top = tk.Toplevel(root)
 
     # pop up close
     def on_close_pop_up():
         top.destroy()
-        button1.configure(state = 'enabled')
         root.attributes("-topmost", True)
     top.protocol("WM_DELETE_WINDOW", on_close_pop_up)
 
@@ -169,8 +172,14 @@ def insert_login():
 
     validateLogin = partial(validateLogin, username, password)
 
+
     #username button
     loginButton = Button(top, text="Login", command=validateLogin).place(relx=0.5,rely=0.79,anchor=CENTER,width=50) 
+   
+    # add RETURN key handler
+    def handler(e):
+        validateLogin()
+    top.bind('<Return>', handler)
 
     
 
@@ -526,6 +535,7 @@ def runcode():
     #
     #
 
+
 # static GUI
 root = tk.Tk()
 
@@ -552,7 +562,7 @@ status.pack()
 status.place(relx=0.5, rely=0.52, anchor=CENTER)
 
 # version
-version = tk.Label(text="Versão: 1.15.7",font=('',7),bg="white")
+version = tk.Label(text="Versão: 1.15.8",font=('',7),bg="white")
 version.pack()
 version.place(relx=0.06, rely=0.98, anchor=CENTER)
 
