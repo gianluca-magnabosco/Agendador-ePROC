@@ -552,7 +552,7 @@ status.pack()
 status.place(relx=0.5, rely=0.52, anchor=CENTER)
 
 # version
-version = tk.Label(text="Versão: 1.15.6 - Pai",font=('',7),bg="white")
+version = tk.Label(text="Versão: 1.15.7",font=('',7),bg="white")
 version.pack()
 version.place(relx=0.06, rely=0.98, anchor=CENTER)
 
