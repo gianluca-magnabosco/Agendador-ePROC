@@ -5,7 +5,7 @@
 Esse programa foi criado com o intuito de efetuar o download de planilhas de intimações pendentes no ePROC, em ambos os estados - Santa Catarina e Paraná, e adicioná-los à eventos do Google Agenda (Google Calendar), tendo como data de ocorrência do evento a data limite para cumprimento de prazo das respectivas intimações.
 
 
-![Agendador ePROC](https://cdn.discordapp.com/attachments/810687915045814293/934916251564769300/16cfd9b554d1347b117ba3d81d0086d4.png)
+![Agendador ePROC](https://cdn.discordapp.com/attachments/810687915045814293/934955120821682206/3aebb01f4ab9edab8d093e0b6188ac35.png)
 
 
 ## Instruções
