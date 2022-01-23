@@ -3,14 +3,17 @@ from tkinter import *
 from tkinter import messagebox
 from tkinter.font import BOLD
 from tkinter.ttk import *
+from tkinter import ttk
 from tkinter.constants import CENTER, TOP, DISABLED
 from openpyxl import load_workbook
 import pyexcel as p
+import pyexcel_xls
+import pyexcel_xlsx
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 import os
 import time
-from selenium.webdriver.common.by import By
 import glob
 import winshell
 from win32com.client import Dispatch
@@ -18,6 +21,7 @@ import pickle
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
+from functools import partial
 
 
 # delete inconvenient, possible waste files
@@ -37,6 +41,9 @@ target = os.path.join(local_path, "Agendador ePROC.exe")
 wDir = local_path
 icon = os.path.join(local_path, "Agendador ePROC.exe")
 
+if os.path.exists(path):
+    os.remove(path)
+
 if not os.path.exists(path):
     shell = Dispatch('WScript.Shell')
     shortcut = shell.CreateShortCut(path)
@@ -44,6 +51,7 @@ if not os.path.exists(path):
     shortcut.WorkingDirectory = wDir
     shortcut.IconLocation = icon
     shortcut.save()
+
 
 
 # create api service function
@@ -109,6 +117,64 @@ def on_closeroot():
         root.destroy()
 
 
+
+def insert_login():
+    global button1
+    def validateLogin(username, password):
+        global login
+        global passwd
+        login = username.get()
+        passwd = password.get()
+        root.attributes("-topmost", True) 
+        top.destroy()
+        if login > "1" and passwd > "1":
+            button1.configure(state = 'enabled')
+        else:
+            button1.configure(state = 'disabled')
+        return login, passwd
+    
+    top = tk.Toplevel(root)
+
+    # pop up close
+    def on_close_pop_up():
+        top.destroy()
+        button1.configure(state = 'enabled')
+        root.attributes("-topmost", True)
+    top.protocol("WM_DELETE_WINDOW", on_close_pop_up)
+
+    # center pop up window
+    def center_window_pop_up(width=240, height=135):
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        x = (screen_width/2) - (width/2)
+        y = (screen_height/2) - (height/2)
+        top.geometry('%dx%d+%d+%d' % (width, height, x, y))
+    center_window_pop_up(240, 135)
+
+    top.title("Login ePROC")
+    top.attributes("-topmost", True)
+
+    tk.Label(top, text= "Insira seu login e senha do ePROC:",font=('Arial',9)).place(relx=0.50,rely=0.14,anchor=CENTER)
+
+    #username label and text entry box
+    usernameLabel = Label(top, text="Login: ").place(relx=0.21,rely=0.37,anchor=CENTER)
+    username = StringVar()
+    usernameEntry = Entry(top, textvariable=username).place(relx=0.56,rely=0.37,anchor=CENTER)
+
+
+    #password label and password entry box
+    passwordLabel = Label(top,text="Senha: ").place(relx=0.21,rely=0.535,anchor=CENTER)
+    password = StringVar()
+    passwordEntry = Entry(top, textvariable=password, show='*').place(relx=0.56,rely=0.535,anchor=CENTER)
+
+    validateLogin = partial(validateLogin, username, password)
+
+    #username button
+    loginButton = Button(top, text="Login", command=validateLogin).place(relx=0.5,rely=0.79,anchor=CENTER,width=50) 
+
+    
+
+
 # main function
 def runcode():
     # style
@@ -123,42 +189,17 @@ def runcode():
     button1.configure(state = 'enabled')
     status.destroy()
 
-    # calendar body & list all calendars
-    calendar_body = {
-        'summary': 'Intimações ePROC',
-        'timeZone': 'America/Sao_Paulo',
-    }
 
-    calendar_list = service.calendarList().list(pageToken=None,maxResults=10).execute()
-
-
-    # delete already existing calendar
-    for calendar_list_entry in calendar_list['items']:  
-        if 'Intimações ePROC' in calendar_list_entry['summary']:
-            id = calendar_list_entry['id'] 
-            service.calendars().delete(calendarId=id).execute()
-
-
-    # create new calendar
-    service.calendars().insert(body=calendar_body).execute()
-
-
-    # list calendars
-    calendar_list = service.calendarList().list(pageToken=None,maxResults=8).execute()
-
-    # get calendar id
-    for calendar_list_entry in calendar_list['items']:
-        if 'Intimações ePROC' in calendar_list_entry['summary']:
-            id = calendar_list_entry['id'] 
-
-
+    # remove possible waste files
+    listardir = os.listdir(local_path)
+    for item in listardir:
+        if item.endswith(".xls"):
+            os.remove(os.path.join(local_path, item))
 
 
     # web browser download xls files
     # configuring web browser
     options = Options()
-    login = "LOGIN"
-    passwd = "PASSWD"
     options.add_argument("start-maximized")
     options.add_argument("--headless")
     preferences = {"download.default_directory": local_path,
@@ -198,20 +239,6 @@ def runcode():
     gerarplanilhaid.click()
     time.sleep(1)
 
-    # rename downloaded file
-    filename = glob.glob('*.xls')
-    filename = ''.join(filename)
-    finalfilename = filename[:16] + '.xls'
-    os.rename(filename, finalfilename)
-
-    # convert to xlsx
-    p.save_book_as(file_name= finalfilename,
-                dest_file_name='intimacaosc.xlsx')
-
-    # delete xls file
-    os.remove(finalfilename)
-
-    time.sleep(1)
     
     # switch tabs
     oldURl = driver.window_handles[0]
@@ -236,25 +263,42 @@ def runcode():
     # download file
     gerarplanilhaid = driver.find_element(By.ID, 'sbmPlanilha')
     gerarplanilhaid.click()
-    time.sleep(1)
+    time.sleep(3)
 
-    # rename downloaded file
-    filename = glob.glob('*.xls')
-    filename = ''.join(filename)
-    finalfilename = filename[:16] + '.xls'
-    os.rename(filename, finalfilename)
-
-
-    # convert to xlsx
-    p.save_book_as(file_name= finalfilename,
-                dest_file_name='intimacaopr.xlsx')
-
-    # delete xls file
-    os.remove(finalfilename)
 
     # finish webbrowser
     driver.quit()
 
+    # ---------------------------------------------------------------------------------------------------------------------------
+
+
+    # calendar body & list all calendars
+    calendar_body = {
+        'summary': 'Intimações ePROC',
+        'timeZone': 'America/Sao_Paulo',
+    }
+
+    calendar_list = service.calendarList().list(pageToken=None,maxResults=10).execute()
+
+
+    # delete already existing calendar
+    for calendar_list_entry in calendar_list['items']:  
+        if 'Intimações ePROC' in calendar_list_entry['summary']:
+            id = calendar_list_entry['id'] 
+            service.calendars().delete(calendarId=id).execute()
+
+
+    # create new calendar
+    service.calendars().insert(body=calendar_body).execute()
+
+
+    # list calendars
+    calendar_list = service.calendarList().list(pageToken=None,maxResults=8).execute()
+
+    # get calendar id
+    for calendar_list_entry in calendar_list['items']:
+        if 'Intimações ePROC' in calendar_list_entry['summary']:
+            id = calendar_list_entry['id'] 
 
 
     # insert events to google calendar function
@@ -277,23 +321,34 @@ def runcode():
                 'description': subj[i],
                 'location': location,
                 'colorId': color,
-                #'attendees':[
-                #    {
-                #        'email': 'rasderfarr_gaguigo1@hotmail.com',
-                #        'optional': False,
-                #        'responseStatus': 'accepted',
-                #    }
-                #],
-                #'reminders': {
-                #    'useDefault': False,
-                #    'overrides':[
-                #        {'method': 'email', 'minutes': 30},
-                #    ]
-                #}
             }
             service.events().insert(calendarId=id, body=event_request_body).execute()
 
     
+    # rename downloaded files & convert to xlsx
+    finalfilename = []
+    filename = glob.glob('*.xls')
+    finalfilename.append(filename[0])
+    finalfilename.append(filename[1])
+    finalfilename[0] = filename[0][:16] + 'sc' + '.xls'
+    finalfilename[1] = filename[1][:16] + 'pr' + '.xls'
+
+    os.rename(filename[0], finalfilename[0])
+    os.rename(filename[1], finalfilename[1])
+   
+    # convert sc to xlsx
+    p.save_book_as(file_name= finalfilename[0],
+                dest_file_name='intimacaosc.xlsx')
+
+    # convert pr to xlsx
+    p.save_book_as(file_name= finalfilename[1],
+                dest_file_name='intimacaopr.xlsx')
+
+    # delete xls files
+    os.remove(finalfilename[0])
+    os.remove(finalfilename[1])
+
+
 
     # ------------------------------------- SANTA CATARINA ----------------------------------
 
@@ -341,27 +396,19 @@ def runcode():
     ano = []
 
 
-    # format month
+    # format month, day, year
     for i in range(0,max_rows):
         mes.append(date[i])
-    mes = [x[:-6] for x in mes]
-
-
-    # format day
-    for i in range(0,max_rows):
         dia.append(date[i])
-    dia = [x[3:-3] for x in dia]
-
-
-    # format year
-    for i in range(0,max_rows):
         ano.append(date[i])
-    ano = ['20' + x[6:] for x in ano]
 
+    mes = [x[:-6] for x in mes]
+    dia = [x[3:-3] for x in dia]
+    ano = ['20' + x[6:] for x in ano]
 
     # insert events
     sc = "ePROC-SC"
-    insert_events(sc, 7)    
+    insert_events(sc, 9)    
 
 
     # delete no longer needed files
@@ -417,21 +464,14 @@ def runcode():
     ano = []
 
 
-    # format month
+    # format month, day, year
     for i in range(0,max_rows):
         mes.append(date[i])
-    mes = [x[:-6] for x in mes]
-
-
-    # format day
-    for i in range(0,max_rows):
         dia.append(date[i])
-    dia = [x[3:-3] for x in dia]
-
-
-    # format year
-    for i in range(0,max_rows):
         ano.append(date[i])
+
+    mes = [x[:-6] for x in mes]
+    dia = [x[3:-3] for x in dia]
     ano = ['20' + x[6:] for x in ano]
 
     # insert events
@@ -488,6 +528,10 @@ def runcode():
 
 # static GUI
 root = tk.Tk()
+
+insert_login()
+
+
 center_window(860, 640)
 root.title("Agendador ePROC")
 bg = PhotoImage(file = "background.png")
@@ -508,14 +552,25 @@ status.pack()
 status.place(relx=0.5, rely=0.52, anchor=CENTER)
 
 # version
-version = tk.Label(text="Versão: 1.15.6",font=('',7),bg="white")
+version = tk.Label(text="Versão: 1.15.6 - Pai",font=('',7),bg="white")
 version.pack()
-version.place(relx=0.05, rely=0.98, anchor=CENTER)
+version.place(relx=0.06, rely=0.98, anchor=CENTER)
 
 # credits
 feitopor = tk.Label(text="Programa criado por: Gianluca Notari Magnabosco da Silva",font=('',7),bg="white")
 feitopor.pack()
 feitopor.place(relx=0.84, rely=0.98, anchor=CENTER)
+
+
+
+# login button
+st = Style()
+st.configure('W.TButton', background='white', foreground='black', font=('Open Sans',11))
+button_login = ttk.Button(root, style='W.TButton', text='  Login\nePROC',command=insert_login,width=50.75)
+button_login.pack()
+button_login.place(relx=0.23, rely=0.72, anchor=CENTER)
+
+
 
 # run code button
 st = Style()
@@ -523,6 +578,7 @@ st.configure('W.TButton', background='white', foreground='black', font=('Open Sa
 button1 = Button(root, style='W.TButton', text='Clique aqui para iniciar o programa',command=runcode,width=27.75)
 button1.pack()
 button1.place(relx=0.5, rely=0.65, anchor=CENTER)
+button1.configure(state = 'disabled')
 
 # end of GUI
 root.mainloop()
