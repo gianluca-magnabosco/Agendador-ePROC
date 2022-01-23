@@ -3,31 +3,25 @@ from tkinter import *
 from tkinter import messagebox
 from tkinter.font import BOLD
 from tkinter.ttk import *
+from tkinter import ttk
 from tkinter.constants import CENTER, TOP, DISABLED
-import openpyxl as xl
-from openpyxl import Workbook, load_workbook
+from openpyxl import load_workbook
 import pyexcel as p
 import pyexcel_xls
 import pyexcel_xlsx
-from datetime import datetime
-import pandas as pd
-import selenium
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 import os
 import time
-from selenium.webdriver.common.by import By
 import glob
 import winshell
 from win32com.client import Dispatch
 import pickle
-import datetime
-from collections import namedtuple
-from google_auth_oauthlib.flow import Flow, InstalledAppFlow
+from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 from google.auth.transport.requests import Request
-
+from functools import partial
 
 
 # delete inconvenient, possible waste files
@@ -47,6 +41,9 @@ target = os.path.join(local_path, "Agendador ePROC.exe")
 wDir = local_path
 icon = os.path.join(local_path, "Agendador ePROC.exe")
 
+if os.path.exists(path):
+    os.remove(path)
+
 if not os.path.exists(path):
     shell = Dispatch('WScript.Shell')
     shortcut = shell.CreateShortCut(path)
@@ -56,13 +53,14 @@ if not os.path.exists(path):
     shortcut.save()
 
 
+
 # create api service function
 def create_service(client_secret_file, api_name, api_version, *scopes, prefix=''):
 	CLIENT_SECRET_FILE = client_secret_file
 	API_SERVICE_NAME = api_name
 	API_VERSION = api_version
 	SCOPES = [scope for scope in scopes[0]]
-	
+
 	cred = None
 	working_dir = os.getcwd()
 	token_dir = 'token files'
@@ -71,7 +69,6 @@ def create_service(client_secret_file, api_name, api_version, *scopes, prefix=''
 	# check if token dir exists first, if not, create the folder
 	if not os.path.exists(os.path.join(working_dir, token_dir)):
 		os.mkdir(os.path.join(working_dir, token_dir))
-
 	if os.path.exists(os.path.join(working_dir, token_dir, pickle_file)):
 		with open(os.path.join(working_dir, token_dir, pickle_file), 'rb') as token:
 			cred = pickle.load(token)
@@ -82,10 +79,8 @@ def create_service(client_secret_file, api_name, api_version, *scopes, prefix=''
 		else:
 			flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_FILE, SCOPES)
 			cred = flow.run_local_server()
-
 		with open(os.path.join(working_dir, token_dir, pickle_file), 'wb') as token:
 			pickle.dump(cred, token)
-
 	try:
 		service = build(API_SERVICE_NAME, API_VERSION, credentials=cred)
 		print(API_SERVICE_NAME, API_VERSION, 'service created successfully')
@@ -97,49 +92,14 @@ def create_service(client_secret_file, api_name, api_version, *scopes, prefix=''
 		return None
 
 
-# convert datetime function
-def convert_to_RFC_datetime(year=1900, month=1, day=1, hour=0, minute=0):
-	dt = datetime.datetime(year, month, day, hour, minute, 0).isoformat() + 'Z'
-	return dt
 
-
-
+# define and create service
 CLIENT_SECRET_FILE = "client_secret.json"
 API_NAME = 'calendar'
 API_VERSION = 'v3'
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 
-
-
 service = create_service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
-
-# list calendars
-calendar_list = service.calendarList().list(pageToken=None,maxResults=10).execute()
-
-
-# delete already existing calendar
-for calendar_list_entry in calendar_list['items']:  
-    if 'Intimações ePROC' in calendar_list_entry['summary']:
-        id = calendar_list_entry['id'] 
-        service.calendars().delete(calendarId=id).execute()
-
-
-# create new calendar
-calendar_body = {
-    'summary': 'Intimações ePROC',
-    'timeZone': 'America/Sao_Paulo',
-}
-service.calendars().insert(body=calendar_body).execute()
-
-
-# list calendars
-calendar_list = service.calendarList().list(pageToken=None,maxResults=6).execute()
-
-# get calendar id
-for calendar_list_entry in calendar_list['items']:
-    if 'Intimações ePROC' in calendar_list_entry['summary']:
-        id = calendar_list_entry['id'] 
-
 
 
 # center window
@@ -150,12 +110,70 @@ def center_window(width=860,height=640):
     y = (screen_height/2) - (height/2)
     root.geometry('%dx%d+%d+%d' % (width, height, x, y))
 
-
 # close program confirmation
 def on_closeroot():
     close = messagebox.askokcancel("Confirmação", "Tem certeza que deseja fechar o programa?")
     if close:
         root.destroy()
+
+
+
+def insert_login():
+    global button1
+    def validateLogin(username, password):
+        global login
+        global passwd
+        login = username.get()
+        passwd = password.get()
+        root.attributes("-topmost", True) 
+        top.destroy()
+        if login > "1" and passwd > "1":
+            button1.configure(state = 'enabled')
+        else:
+            button1.configure(state = 'disabled')
+        return login, passwd
+    
+    top = tk.Toplevel(root)
+
+    # pop up close
+    def on_close_pop_up():
+        top.destroy()
+        button1.configure(state = 'enabled')
+        root.attributes("-topmost", True)
+    top.protocol("WM_DELETE_WINDOW", on_close_pop_up)
+
+    # center pop up window
+    def center_window_pop_up(width=240, height=135):
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        x = (screen_width/2) - (width/2)
+        y = (screen_height/2) - (height/2)
+        top.geometry('%dx%d+%d+%d' % (width, height, x, y))
+    center_window_pop_up(240, 135)
+
+    top.title("Login ePROC")
+    top.attributes("-topmost", True)
+
+    tk.Label(top, text= "Insira seu login e senha do ePROC:",font=('Arial',9)).place(relx=0.50,rely=0.14,anchor=CENTER)
+
+    #username label and text entry box
+    usernameLabel = Label(top, text="Login: ").place(relx=0.21,rely=0.37,anchor=CENTER)
+    username = StringVar()
+    usernameEntry = Entry(top, textvariable=username).place(relx=0.56,rely=0.37,anchor=CENTER)
+
+
+    #password label and password entry box
+    passwordLabel = Label(top,text="Senha: ").place(relx=0.21,rely=0.535,anchor=CENTER)
+    password = StringVar()
+    passwordEntry = Entry(top, textvariable=password, show='*').place(relx=0.56,rely=0.535,anchor=CENTER)
+
+    validateLogin = partial(validateLogin, username, password)
+
+    #username button
+    loginButton = Button(top, text="Login", command=validateLogin).place(relx=0.5,rely=0.79,anchor=CENTER,width=50) 
+
+    
+
 
 # main function
 def runcode():
@@ -172,13 +190,16 @@ def runcode():
     status.destroy()
 
 
-    # ------------------------------------- SANTA CATARINA ----------------------------------
+    # remove possible waste files
+    listardir = os.listdir(local_path)
+    for item in listardir:
+        if item.endswith(".xls"):
+            os.remove(os.path.join(local_path, item))
 
-    # web browser download xls file
+
+    # web browser download xls files
     # configuring web browser
     options = Options()
-    login = "INSERT_LOGIN_HERE"                                     # INSERIR LOGIN DO EPROC
-    passwd = "INSERT_PASSWORD_HERE"                                 # INSERIR SENHA DO EPROC
     options.add_argument("start-maximized")
     options.add_argument("--headless")
     preferences = {"download.default_directory": local_path,
@@ -188,8 +209,9 @@ def runcode():
     # open web browser
     driverpath = "/chromedriver.exe"
     driver = webdriver.Chrome(executable_path = local_path + driverpath, options=options)
+    driver.implicitly_wait(15)
     driver.get("https://eproc1g.tjsc.jus.br/eproc/externo_controlador.php?acao=principal")
-    time.sleep(1)
+
 
     # login
     loginxpath = driver.find_element(By.XPATH, '//*[@id="txtUsuario"]')
@@ -204,42 +226,140 @@ def runcode():
     # get to file webpage
     scbuttonxpath = driver.find_element(By.XPATH, '//*[@id="tr0"]')
     scbuttonxpath.click()
-    time.sleep(2)
 
     intimacoesxpath = driver.find_element(By.XPATH, '//*[@id="conteudoCitacoesIntimacoesSC"]/div[2]/table/tbody/tr[1]/td[2]/a')
     intimacoesxpath.click()
-    time.sleep(1)
 
+    # switch tabs
     newURl = driver.window_handles[1]
     driver.switch_to.window(newURl)
 
     # download file
     gerarplanilhaid = driver.find_element(By.ID, 'sbmPlanilha')
     gerarplanilhaid.click()
-    time.sleep(2)
+    time.sleep(1)
+
+    
+    # switch tabs
+    oldURl = driver.window_handles[0]
+    driver.switch_to.window(oldURl)
+
+    # go back to menu
+    driver.back()
+    time.sleep(1)
+
+    # get to download page
+    prbuttonxpath = driver.find_element(By.XPATH, '//*[@id="tr1"]')
+    prbuttonxpath.click()
+
+    intimacoesxpath = driver.find_element(By.XPATH, '//*[@id="conteudoCitacoesIntimacoesSC"]/div[2]/table/tbody/tr[1]/td[2]/a')
+    intimacoesxpath.click()
+
+    # switch tabs
+    newURl = driver.window_handles[1]
+    driver.switch_to.window(newURl)
+
+
+    # download file
+    gerarplanilhaid = driver.find_element(By.ID, 'sbmPlanilha')
+    gerarplanilhaid.click()
+    time.sleep(3)
+
+
+    # finish webbrowser
     driver.quit()
 
-    # rename downloaded file
-    filename = glob.glob('*.xls')
-    filename = ''.join(filename)
-    finalfilename = filename[:16] + '.xls'
-    os.rename(filename, finalfilename)
+    # ---------------------------------------------------------------------------------------------------------------------------
 
-    # convert to xlsx
-    p.save_book_as(file_name= finalfilename,
+
+    # calendar body & list all calendars
+    calendar_body = {
+        'summary': 'Intimações ePROC',
+        'timeZone': 'America/Sao_Paulo',
+    }
+
+    calendar_list = service.calendarList().list(pageToken=None,maxResults=10).execute()
+
+
+    # delete already existing calendar
+    for calendar_list_entry in calendar_list['items']:  
+        if 'Intimações ePROC' in calendar_list_entry['summary']:
+            id = calendar_list_entry['id'] 
+            service.calendars().delete(calendarId=id).execute()
+
+
+    # create new calendar
+    service.calendars().insert(body=calendar_body).execute()
+
+
+    # list calendars
+    calendar_list = service.calendarList().list(pageToken=None,maxResults=8).execute()
+
+    # get calendar id
+    for calendar_list_entry in calendar_list['items']:
+        if 'Intimações ePROC' in calendar_list_entry['summary']:
+            id = calendar_list_entry['id'] 
+
+
+    # insert events to google calendar function
+    def insert_events(location, color):
+        all_day_event_true_start = []
+        all_day_event_true_end = []
+        for i in range(0,max_rows):
+            all_day_event_true_start.append("{}-{}-{}".format(ano[i],mes[i],dia[i]))
+            all_day_event_true_end.append("{}-{}-{}".format(ano[i],mes[i],dia[i]))
+            event_request_body = {
+                'start':{
+                    'date': all_day_event_true_start[i],
+                    'timeZone': 'America/Sao_Paulo',
+                },
+                'end':{
+                    'date': all_day_event_true_end[i],
+                    'timeZone': 'America/Sao_Paulo',
+                },
+                'summary': subj[i],
+                'description': subj[i],
+                'location': location,
+                'colorId': color,
+            }
+            service.events().insert(calendarId=id, body=event_request_body).execute()
+
+    
+    # rename downloaded files & convert to xlsx
+    finalfilename = []
+    filename = glob.glob('*.xls')
+    finalfilename.append(filename[0])
+    finalfilename.append(filename[1])
+    finalfilename[0] = filename[0][:16] + 'sc' + '.xls'
+    finalfilename[1] = filename[1][:16] + 'pr' + '.xls'
+
+    os.rename(filename[0], finalfilename[0])
+    os.rename(filename[1], finalfilename[1])
+   
+    # convert sc to xlsx
+    p.save_book_as(file_name= finalfilename[0],
                 dest_file_name='intimacaosc.xlsx')
 
+    # convert pr to xlsx
+    p.save_book_as(file_name= finalfilename[1],
+                dest_file_name='intimacaopr.xlsx')
+
+    # delete xls files
+    os.remove(finalfilename[0])
+    os.remove(finalfilename[1])
+
+
+
+    # ------------------------------------- SANTA CATARINA ----------------------------------
 
     # load file, sheet
     wb = load_workbook('intimacaosc.xlsx')
     ws = wb.active
 
 
-    # formatting excel chart
+    # formatting excel sheet
     for i in range(0,2):
         ws.delete_rows(1)
-
-    ws.insert_rows(1)
 
     for i in range(0,2):
         ws.delete_cols(1)
@@ -249,241 +369,54 @@ def runcode():
 
 
     # row number variable
-    max_rows = ws.max_row-1
+    max_rows = ws.max_row
 
     # append list variables
     subj = []
     date = []
-    filetime = []
-
 
     # copy subject
-    for i in range(1,max_rows+2):
+    for i in range(1,max_rows+1):
         subj.append(ws.cell(row = i, column = 1).value)
 
-    # paste into description
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 7).value = subj[i-1]
-
-
     # copy date
-    for i in range(1,max_rows+2):
+    for i in range(1,max_rows+1):
         date.append(ws.cell(row = i, column = 2).value)
 
     # stringify date
     i = 0
     while i < max_rows:
-        i += 1
         date[i] = date[i].strftime("%x")
+        i += 1
 
-    # paste date 
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 2).value = date[i-1]
-
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 4).value = date[i-1]
-
-
-
-    # fill start time
-    a = 0
-    for i in range(1,max_rows+2):
-        if i < 18:
-            ws.cell(row = i, column = 3).value = "{}:00".format(i)
-        elif i >= 18:
-            a += 1
-            ws.cell(row = i, column = 3).value = "{}:00".format(a)
-            if a >= 17:
-                a = 0
-
-    # copy start time
-    for i in range(1,max_rows+2):
-        filetime.append(ws.cell(row = i, column = 3).value)
-
-    # paste end time
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 5).value = filetime[i-1]
-
-
-
-    # fill all day event
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 6).value = "FALSE"  
-
-
-    # fill location
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 8).value = "ePROC-SC" 
-
-
-    # fill private
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 9).value = "TRUE"    
-
-
-
-    # header
-    cabecalho = ['Subject', 'Start Date', 'Start Time', 'End Date', 'End Time', 'All Day Event', 'Description', 'Location', 'Private']
-    for col in range(0,9):
-        char = chr(65 + col)
-        ws[char + '1'] = cabecalho[col]
-
-
-
-    # save file
-    wb.save('sc.xlsx')
-
-
-    # insert events to google calendar function
-    def insert_events(location, color):
-        for i in range(0,max_rows):
-            adjust_timezone = 3
-            adjust_timezone_endtime = 4
-            event_request_body = {
-                'start':{
-                    'dateTime': convert_to_RFC_datetime(int(ano[i]), int(mes[i]), int(dia[i]), int(tempo[i]) + adjust_timezone, 0),
-                    'timeZone': 'America/Sao_Paulo',
-                },
-                'end':{
-                    'dateTime': convert_to_RFC_datetime(int(ano[i]), int(mes[i]), int(dia[i]), int(tempo[i]) + adjust_timezone_endtime, 0),
-                    'timeZone': 'America/Sao_Paulo',
-                },
-                'summary': subj[i],
-                'description': subj[i],
-                'location': location,
-                'colorId': color,
-                #'attendees':[
-                #    {
-                #        'email': '',
-                #        'optional': False,
-                #        'responseStatus': 'accepted',
-                #    }
-                #],
-                #'reminders': {
-                #    'useDefault': False,
-                #    'overrides':[
-                #        {'method': 'email', 'minutes': 30},
-                #    ]
-                #}
-            }
-            service.events().insert(calendarId=id, body=event_request_body).execute()
-
-
-
-
-    # load xlsx file containing the events
-    wb = load_workbook('sc.xlsx')
-    ws = wb.active
-
-    # row number variable
-    max_rows = ws.max_row-1
 
     # append lists
-    subj = []
-    date = []
-    filetime = []
-    tempo = []
     mes = []
     dia = []
     ano = []
 
 
-    # copy subject
-    for i in range(2,max_rows+2):
-        subj.append(ws.cell(row = i, column = 1).value)
-
-
-    # copy date
-    for i in range(1,max_rows+2):
-        date.append(ws.cell(row = i, column = 2).value)
-
-
-    # copy start time
-    for i in range(1,max_rows+2):
-        filetime.append(ws.cell(row = i, column = 3).value)
-
-
-
-    # format time
-    for i in range(1,max_rows+1):
-        tempo.append(filetime[i])
-    tempo = [x[:-3] for x in tempo]
-
-
-    # format month
-    for i in range(1,max_rows+1):
+    # format month, day, year
+    for i in range(0,max_rows):
         mes.append(date[i])
-    mes = [x[:-6] for x in mes]
-
-
-    # format day
-    for i in range(1,max_rows+1):
         dia.append(date[i])
-    dia = [x[3:-3] for x in dia]
-
-
-    # format year
-    for i in range(1,max_rows+1):
         ano.append(date[i])
-    ano = ['20' + x[6:] for x in ano]
 
+    mes = [x[:-6] for x in mes]
+    dia = [x[3:-3] for x in dia]
+    ano = ['20' + x[6:] for x in ano]
 
     # insert events
     sc = "ePROC-SC"
-    insert_events(sc, 7)    
+    insert_events(sc, 9)    
 
 
     # delete no longer needed files
-    os.remove(finalfilename)
     os.remove('intimacaosc.xlsx')
 
 
+
     # -------------------------------------- PARANA ----------------------------------------------------
-
-    # web browser download xls file
-    # open web browser
-    driver = webdriver.Chrome(executable_path = local_path + driverpath, options=options)
-    driver.get("https://eproc1g.tjsc.jus.br/eproc/externo_controlador.php?acao=principal")
-    time.sleep(1)
-
-    # login
-    loginxpath = driver.find_element(By.XPATH, '//*[@id="txtUsuario"]')
-    loginxpath.send_keys(login)
-
-    passwxpath = driver.find_element(By.XPATH, '//*[@id="pwdSenha"]')
-    passwxpath.send_keys(passwd)
-
-    loginbuttonxpath = driver.find_element(By.XPATH, '//*[@id="sbmEntrar"]')
-    loginbuttonxpath.click()
-
-    # get to file webpage
-    prbuttonxpath = driver.find_element(By.XPATH, '//*[@id="tr1"]')
-    prbuttonxpath.click()
-    time.sleep(2)
-
-    intimacoesxpath = driver.find_element(By.XPATH, '//*[@id="conteudoCitacoesIntimacoesSC"]/div[2]/table/tbody/tr[1]/td[2]/a')
-    intimacoesxpath.click()
-    time.sleep(1)
-
-    newURl = driver.window_handles[1]
-    driver.switch_to.window(newURl)
-
-    # download file
-    gerarplanilhaid = driver.find_element(By.ID, 'sbmPlanilha')
-    gerarplanilhaid.click()
-    time.sleep(2)
-    driver.quit()
-
-    # rename downloaded file
-    filename = glob.glob('*.xls')
-    filename = ''.join(filename)
-    finalfilename = filename[:16] + '.xls'
-    os.rename(filename, finalfilename)
-
-
-    # convert to xlsx
-    p.save_book_as(file_name= finalfilename,
-                dest_file_name='intimacaopr.xlsx')
 
 
     # load file, sheet
@@ -495,8 +428,6 @@ def runcode():
     for i in range(0,2):
         ws.delete_rows(1)
 
-    ws.insert_rows(1)
-
     for i in range(0,2):
         ws.delete_cols(1)
 
@@ -505,147 +436,42 @@ def runcode():
 
 
     # row number variable
-    max_rows = ws.max_row-1
+    max_rows = ws.max_row
 
-    # append list variables
+    # clear lists
     subj = []
     date = []
-    filetime = []
 
 
     # copy subject
-    for i in range(1,max_rows+2):
+    for i in range(1,max_rows+1):
         subj.append(ws.cell(row = i, column = 1).value)
 
-    # paste into description
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 7).value = subj[i-1]
-
-
-
     # copy date
-    for i in range(1,max_rows+2):
+    for i in range(1,max_rows+1):
         date.append(ws.cell(row = i, column = 2).value)
 
     # stringify date
     i = 0
     while i < max_rows:
-        i += 1
         date[i] = date[i].strftime("%x")
-
-    # paste date 
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 2).value = date[i-1]
-
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 4).value = date[i-1]
+        i += 1
 
 
-
-    # fill start time
-    a = 0
-    for i in range(1,max_rows+2):
-        if i < 18:
-            ws.cell(row = i, column = 3).value = "{}:00".format(i)
-        elif i >= 18:
-            a += 1
-            ws.cell(row = i, column = 3).value = "{}:00".format(a)
-            if a >= 17:
-                a = 0
-
-    # copy start time
-    for i in range(1,max_rows+2):
-        filetime.append(ws.cell(row = i, column = 3).value)
-
-    # paste end time
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 5).value = filetime[i-1]
-
-
-
-    # fill all day event
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 6).value = "FALSE"  
-
-
-    # fill location
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 8).value = "ePROC-PR" 
-
-
-    # fill private
-    for i in range(1,max_rows+2):
-        ws.cell(row = i, column = 9).value = "TRUE"    
-
-
-
-    # header
-    cabecalho = ['Subject', 'Start Date', 'Start Time', 'End Date', 'End Time', 'All Day Event', 'Description', 'Location', 'Private']
-    for col in range(0,9):
-        char = chr(65 + col)
-        ws[char + '1'] = cabecalho[col]
-
-
-
-    # save file
-    wb.save('pr.xlsx')
-
-
-
-
-    # load xlsx file containing the events
-    wb = load_workbook('pr.xlsx')
-    ws = wb.active
-
-    # row number variable
-    max_rows = ws.max_row-1
-
-    # append lists
-    subj = []
-    date = []
-    filetime = []
-    tempo = []
+    # clear lists
     mes = []
     dia = []
     ano = []
 
-    # copy subject
-    for i in range(2,max_rows+2):
-        subj.append(ws.cell(row = i, column = 1).value)
 
-
-    # copy date
-    for i in range(1,max_rows+2):
-        date.append(ws.cell(row = i, column = 2).value)
-
-
-    # copy start time
-    for i in range(1,max_rows+2):
-        filetime.append(ws.cell(row = i, column = 3).value)
-
-
-
-    # format time
-    for i in range(1,max_rows+1):
-        tempo.append(filetime[i])
-    tempo = [x[:-3] for x in tempo]
-
-
-    # format month
-    for i in range(1,max_rows+1):
+    # format month, day, year
+    for i in range(0,max_rows):
         mes.append(date[i])
-    mes = [x[:-6] for x in mes]
-
-
-    # format day
-    for i in range(1,max_rows+1):
         dia.append(date[i])
-    dia = [x[3:-3] for x in dia]
-
-
-    # format year
-    for i in range(1,max_rows+1):
         ano.append(date[i])
+
+    mes = [x[:-6] for x in mes]
+    dia = [x[3:-3] for x in dia]
     ano = ['20' + x[6:] for x in ano]
 
     # insert events
@@ -654,10 +480,11 @@ def runcode():
 
 
     # delete no longer needed files
-    os.remove(finalfilename)
     os.remove('intimacaopr.xlsx')
 
     # ----------------------------------------------------------------------------------------------
+
+
 
     # dynamic GUI
     status1 = tk.Label(text="Concluído!",wraplength=200,font=('',9,'bold'),bg='white')
@@ -685,7 +512,7 @@ def runcode():
         status1.destroy()
         on_closetop() 
 
-
+    # success pop up
     closeconfirmation = messagebox.showinfo("Sucesso!", "O programa foi executado com sucesso!")
     if closeconfirmation:
         endprogram()
@@ -701,6 +528,10 @@ def runcode():
 
 # static GUI
 root = tk.Tk()
+
+insert_login()
+
+
 center_window(860, 640)
 root.title("Agendador ePROC")
 bg = PhotoImage(file = "background.png")
@@ -720,10 +551,26 @@ status = tk.Label(text="Seja bem-vindo!",wraplength=200,font=('',15,'bold'),bg='
 status.pack()
 status.place(relx=0.5, rely=0.52, anchor=CENTER)
 
+# version
+version = tk.Label(text="Versão: 1.15.6 - Pai",font=('',7),bg="white")
+version.pack()
+version.place(relx=0.06, rely=0.98, anchor=CENTER)
+
 # credits
 feitopor = tk.Label(text="Programa criado por: Gianluca Notari Magnabosco da Silva",font=('',7),bg="white")
 feitopor.pack()
-feitopor.place(relx=0.85, rely=0.98, anchor=CENTER)
+feitopor.place(relx=0.84, rely=0.98, anchor=CENTER)
+
+
+
+# login button
+st = Style()
+st.configure('W.TButton', background='white', foreground='black', font=('Open Sans',11))
+button_login = ttk.Button(root, style='W.TButton', text='  Login\nePROC',command=insert_login,width=50.75)
+button_login.pack()
+button_login.place(relx=0.23, rely=0.72, anchor=CENTER)
+
+
 
 # run code button
 st = Style()
@@ -731,6 +578,7 @@ st.configure('W.TButton', background='white', foreground='black', font=('Open Sa
 button1 = Button(root, style='W.TButton', text='Clique aqui para iniciar o programa',command=runcode,width=27.75)
 button1.pack()
 button1.place(relx=0.5, rely=0.65, anchor=CENTER)
+button1.configure(state = 'disabled')
 
 # end of GUI
 root.mainloop()

@@ -1,5 +1,5 @@
-('C:\\Users\\Gian\\Desktop\\programa_pai\\Agendador ePROC\\build\\Agendador '
- 'ePROC\\Agendador ePROC.pkg',
+('C:\\Users\\Gian\\Desktop\\GitHub\\Agendador-ePROC\\Agendador '
+ 'ePROC\\build\\Agendador ePROC\\Agendador ePROC.pkg',
  {'BINARY': 1,
   'DATA': 1,
   'EXECUTABLE': 1,
@@ -9,12 +9,12 @@
   'PYZ': 0,
   'SPLASH': 1},
  [('PYZ-00.pyz',
-   'C:\\Users\\Gian\\Desktop\\programa_pai\\Agendador ePROC\\build\\Agendador '
-   'ePROC\\PYZ-00.pyz',
+   'C:\\Users\\Gian\\Desktop\\GitHub\\Agendador-ePROC\\Agendador '
+   'ePROC\\build\\Agendador ePROC\\PYZ-00.pyz',
    'PYZ'),
   ('struct',
-   'C:\\Users\\Gian\\Desktop\\programa_pai\\Agendador ePROC\\build\\Agendador '
-   'ePROC\\localpycos\\struct.pyo',
+   'C:\\Users\\Gian\\Desktop\\GitHub\\Agendador-ePROC\\Agendador '
+   'ePROC\\build\\Agendador ePROC\\localpycos\\struct.pyo',
    'PYMODULE'),
   ('pyimod01_os_path',
    'C:\\Users\\Gian\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.9_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python39\\site-packages\\PyInstaller\\loader\\pyimod01_os_path.pyc',
@@ -53,7 +53,8 @@
    'C:\\Users\\Gian\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.9_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python39\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth__tkinter.py',
    'PYSOURCE'),
   ('Agendador',
-   'C:\\Users\\Gian\\Desktop\\programa_pai\\Agendador ePROC\\Agendador.py',
+   'C:\\Users\\Gian\\Desktop\\GitHub\\Agendador-ePROC\\Agendador '
+   'ePROC\\Agendador.py',
    'PYSOURCE')],
  True,
  False,
