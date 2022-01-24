@@ -19,11 +19,11 @@ python -m PyInstaller --onedir --windowed --icon=icone.ico --name="Agendador ePR
 Ao instalar o programa, é necessário, antes de executá-lo, criar um projeto na Google Cloud Platform, que pode ser realizado no link abaixo:
 * _<https://console.cloud.google.com/>_
 * Ative a biblioteca do Google Calendar API;
-* Crie uma chave de autenticação, e baixe o json da mesma;
+* Crie uma chave de autenticação OAuth, e baixe o json da mesma;
 * Renomeie o arquivo baixado para _`client_secret.json`_ e coloque na pasta `./Agendador ePROC/dist/Agendador ePROC/`
 
 ## Informações
-* Os arquivos que constam na pasta [trinity of five](https://github.com/gianluca-magnabosco/Agendador-ePROC/tree/main/trinity%20of%20five) devem ser inseridos na pasta `./Agendador ePROC/dist/Agendador ePROC/` para funcionamento do programa: 
+* Os arquivos que constam na pasta [trinity of five](https://github.com/gianluca-magnabosco/Agendador-ePROC/tree/main/trinity%20of%20five) devem ser inseridos na pasta `./Agendador ePROC/dist/Agendador ePROC/` para bom funcionamento do programa: 
   - O arquivo do driver do navegador `(chromedriver.exe)` deve estar dentro da pasta `./Agendador ePROC/dist/Agendador ePROC/` para que o programa funcione.
   - O arquivo de icone - `icone.ico` está disponível no repositório, e pode ser também realocado à pasta.
   - O arquivo `(background.png)` contém a imagem de fundo do programa, também pode ser movida à pasta.
