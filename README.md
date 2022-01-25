@@ -18,13 +18,16 @@ Para que o programa funcione, o arquivo de driver de navegador "chromedriver.exe
 "./Agendador ePROC/dist/Agendador ePROC/"
 ``` 
 
+</br >
+
+
 O script já foi instalado como programa e depositado nesse repositório, porém caso tenha problema com a versão disponível no repositório, o recomendado é instalar o programa utilizando o `PyInstaller` com a linha de comando já explicitada no código e que segue:
 ```python
 python -m PyInstaller --onedir --windowed --icon=icone.ico --name="Agendador ePROC" Agendador.py
-```
-* É necessário mudar o nome do script contido nesse repositório para `Agendador.py`
+``` 
+> É necessário mudar o nome do script contido nesse repositório para `Agendador.py`
 
-* O parâmetro `--windowed` pode ser retirado caso ocorra algum problema, retirar o parâmetro mostrará o log de console do programa enquanto o mesmo estiver em execução, desta forma, possíveis mensagens de erro podem ser detectadas.
+> O parâmetro `--windowed` pode ser retirado caso ocorra algum problema, retirar o parâmetro mostrará o log de console do programa enquanto o mesmo estiver em execução, desta forma, possíveis mensagens de erro podem ser detectadas.
 ##
 
 Ao baixar ou instalar o programa, é necessário, antes de executá-lo, criar um projeto na Google Cloud Platform, que pode ser realizado no link abaixo:
@@ -73,7 +76,7 @@ Ao baixar ou instalar o programa, é necessário, antes de executá-lo, criar um
 </div>
 
 
-* Renomeie o arquivo baixado para _`client_secret.json`_ e coloque na pasta `./Agendador ePROC/dist/Agendador ePROC/`
+> Renomeie o arquivo baixado para _`client_secret.json`_ e coloque na pasta `./Agendador ePROC/dist/Agendador ePROC/`
 ## 
 </br >
 
