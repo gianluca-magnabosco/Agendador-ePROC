@@ -66,7 +66,7 @@ Ao baixar ou instalar o programa, é necessário, antes de executá-lo, criar um
 ### Crie uma chave de autenticação OAuth, e baixe o json da mesma:
 <div>
   
-  ![eproc4](https://media.discordapp.net/attachments/810687915045814293/935418502129528883/eproc_4.png)
+  !https://media.discordapp.net/attachments/555940526554218496/935528342403305552/eproc_4.png)
 
   ![eproc5](https://media.discordapp.net/attachments/810687915045814293/935418523969257522/eproc_5.png)
 
