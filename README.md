@@ -33,8 +33,8 @@ python -m PyInstaller --onedir --windowed --icon=icone.ico --name="Agendador ePR
 > O parâmetro `--windowed` pode ser retirado caso ocorra algum problema, retirar o parâmetro mostrará o log de console do programa enquanto o mesmo estiver em execução, desta forma, possíveis mensagens de erro podem ser detectadas.
 ##
 
-Ao baixar ou instalar o programa, é necessário, antes de executá-lo, criar um projeto na Google Cloud Platform, que pode ser realizado no link abaixo:
-### <https://console.cloud.google.com/>
+### Ao baixar ou instalar o programa, é necessário, antes de executá-lo, criar um projeto na Google Cloud Platform, que pode ser realizado no link abaixo:
+* ### <https://console.cloud.google.com/>
 
 ### Após criar ou logar em sua conta do Google, crie um projeto para o programa:
 ![eproc1](https://media.discordapp.net/attachments/810687915045814293/935418466641543208/eproc_1.png)
