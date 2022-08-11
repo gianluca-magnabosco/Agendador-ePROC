@@ -4,6 +4,8 @@ from tkinter import ttk
 from tkinter.constants import CENTER
 from functools import partial
 import time
+import os
+from dotenv.main import load_dotenv
 
 class AgendadorGUI():
 
@@ -39,7 +41,16 @@ class AgendadorGUI():
         background_label.place(relx = 0.5, rely = 0.5, anchor = CENTER)
 
         self.initComponents()
-        self.insert_login()
+
+        load_dotenv()
+
+        try:
+            self.login = os.environ["EPROC_LOGIN"]
+            self.passwd = os.environ["EPROC_PASSWORD"]
+        except:
+            self.insert_login()
+        else:
+            self.changeButtonState("enabled")
 
         self.root.mainloop()
 
@@ -77,6 +88,19 @@ class AgendadorGUI():
 
         if self.login > "1" and self.passwd > "1":
             self.button1.configure(state = "enabled")
+            try:
+                aux = os.environ["EPROC_LOGIN"]
+                aux2 = os.environ["EPROC_PASSWORD"]
+            except:
+                with open(".env", "a") as file:
+                    file.write(f'\nEPROC_LOGIN = "{self.login}"')
+                    file.write(f'\nEPROC_PASSWORD = "{self.passwd}"')
+            else:
+                db_passwd = os.environ["DATABASE_PASSWORD"]
+                with open(".env", "w") as file:
+                    file.write(f'DATABASE_PASSWORD = "{db_passwd}"')
+                    file.write(f'\nEPROC_LOGIN = "{self.login}"')
+                    file.write(f'\nEPROC_PASSWORD = "{self.passwd}"')                    
         else:
             self.button1.configure(state = "disabled")
 

@@ -1,4 +1,3 @@
-from tkinter import messagebox
 from tkinter import ttk
 from tkinter.constants import CENTER
 from functions.aux_functions import createDesktopShortcut
@@ -58,7 +57,7 @@ if __name__ == "__main__":
 #
 #
 #
-# python -m PyInstaller --onedir --windowed --icon=icone.ico --name="Agendador ePROC" Agendador.py
+# python -m PyInstaller --onedir --windowed --icon=icone.ico --name="Agendador ePROC" agendador.py
 #
 #
 #
