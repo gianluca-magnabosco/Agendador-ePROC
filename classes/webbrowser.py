@@ -13,24 +13,24 @@ class WebBrowser():
 
 
     def startBrowser(self):
-        local_path = os.getcwd()
+        localPath = os.getcwd()
 
         options = Options()
         options.add_argument("start-maximized")
         options.add_argument("--headless")
-        preferences = {"download.default_directory": local_path, "directory_upgrade": True}
+        preferences = {"download.default_directory": localPath, "directory_upgrade": True}
         options.add_experimental_option("prefs", preferences)                   
 
-        driverpath = "/chromedriver.exe"
-        self.driver = webdriver.Chrome(executable_path = local_path + driverpath, options = options)
+        driverPath = "/chromedriver.exe"
+        self.driver = webdriver.Chrome(executable_path = localPath + driverPath, options = options)
         self.driver.implicitly_wait(15)
         self.driver.get("https://eproc1g.tjsc.jus.br/eproc/externo_controlador.php?acao=principal")
 
         self.eprocLogin()
 
-        self.downloadFiles("tr0")
+        self.downloadFile("tr0")
         self.goBack()
-        self.downloadFiles("tr1")
+        self.downloadFile("tr1")
 
         time.sleep(3)
 
@@ -38,14 +38,14 @@ class WebBrowser():
 
 
     def eprocLogin(self):
-        loginxpath = self.driver.find_element(By.XPATH, '//*[@id="txtUsuario"]')
-        loginxpath.send_keys(self.login)
+        loginField = self.driver.find_element(By.XPATH, '//*[@id="txtUsuario"]')
+        loginField.send_keys(self.login)
 
-        passwxpath = self.driver.find_element(By.XPATH, '//*[@id="pwdSenha"]')
-        passwxpath.send_keys(self.passwd)
+        passwordField = self.driver.find_element(By.XPATH, '//*[@id="pwdSenha"]')
+        passwordField.send_keys(self.passwd)
 
-        loginbuttonxpath = self.driver.find_element(By.XPATH, '//*[@id="sbmEntrar"]')
-        loginbuttonxpath.click()
+        loginButton = self.driver.find_element(By.XPATH, '//*[@id="sbmEntrar"]')
+        loginButton.click()
 
 
     def goBack(self):
@@ -55,17 +55,17 @@ class WebBrowser():
         time.sleep(1)
     
 
-    def downloadFiles(self, element):
+    def downloadFile(self, element):
         
-        buttonxpath = self.driver.find_element(By.XPATH, f'//*[@id="{element}"]')
-        buttonxpath.click()
+        eprocStateButton = self.driver.find_element(By.XPATH, f'//*[@id="{element}"]')
+        eprocStateButton.click()
 
-        intimacoesxpath = self.driver.find_element(By.XPATH, '//*[@id="conteudoCitacoesIntimacoesSC"]/div[2]/table/tbody/tr[1]/td[2]/a')
-        intimacoesxpath.click()
+        intimacoesButton = self.driver.find_element(By.XPATH, '//*[@id="conteudoCitacoesIntimacoesSC"]/div[2]/table/tbody/tr[1]/td[2]/a')
+        intimacoesButton.click()
 
         newURl = self.driver.window_handles[1]
         self.driver.switch_to.window(newURl)
 
-        gerarplanilhaid = self.driver.find_element(By.ID, "sbmPlanilha")
-        gerarplanilhaid.click()
+        downloadButton = self.driver.find_element(By.ID, "sbmPlanilha")
+        downloadButton.click()
         time.sleep(2)

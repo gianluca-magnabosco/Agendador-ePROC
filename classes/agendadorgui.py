@@ -5,6 +5,7 @@ from tkinter.constants import CENTER
 from functools import partial
 import time
 import os
+import re
 from dotenv.main import load_dotenv
 
 class AgendadorGUI():
@@ -25,20 +26,16 @@ class AgendadorGUI():
             self.root.destroy()
 
 
-    def on_close_login(self):
-        self.loginPopUp.destroy()
-        self.root.attributes("-topmost", True)
-
-
     def initGUI(self):
         iconFile = "img/icone.ico"
         self.center_window(860, 640, self.root)
         self.root.title("Agendador ePROC")
         self.root.protocol("WM_DELETE_WINDOW", self.on_closeroot)
         self.root.iconbitmap(default = iconFile)
-        background_image = tk.PhotoImage(file = "img/background.png")
-        background_label = ttk.Label(self.root, image = background_image)
-        background_label.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+        self.root.resizable(0, 0)
+        backgroundImage = tk.PhotoImage(file = "img/background.png")
+        backgroundLabel = ttk.Label(self.root, image = backgroundImage)
+        backgroundLabel.place(relx = 0.5, rely = 0.5, anchor = CENTER)
 
         self.initComponents()
 
@@ -46,11 +43,14 @@ class AgendadorGUI():
 
         try:
             self.login = os.environ["EPROC_LOGIN"]
-            self.passwd = os.environ["EPROC_PASSWORD"]
+            self.password = os.environ["EPROC_PASSWORD"]
         except:
             self.insert_login()
         else:
-            self.changeButtonState("enabled")
+            if re.match("^[a-zA-Z]{2}\d{6}$", os.environ["EPROC_LOGIN"]):
+                self.changeButtonState("enabled")
+            else:
+                self.insert_login()
 
         self.root.mainloop()
 
@@ -61,130 +61,121 @@ class AgendadorGUI():
 
 
     def initLabels(self):
-        status = tk.Label(text = "Seja bem-vindo!", wraplength = 200, font = ("", 15 ,"bold"), bg = "white")
-        status.pack()
-        status.place(relx = 0.5, rely = 0.52, anchor = CENTER)
+        self.welcomeLabel = tk.Label(text = "Seja bem-vindo!", wraplength = 200, font = ("", 15, "bold"), bg = "white")
+        self.welcomeLabel.pack()
+        self.welcomeLabel.place(relx = 0.5, rely = 0.52, anchor = CENTER)
 
-        info = tk.Label(text = "Clique no botão abaixo para iniciar o programa e aguarde alguns instantes!", wraplength = 200, font = ("", 13), bg = "white")
-        info.pack()
-        info.place(relx = 0.5, rely = 0.4, anchor = CENTER)
+        self.infoLabel = tk.Label(text = "Clique no botão abaixo para iniciar o programa e aguarde alguns instantes!", wraplength = 200, font = ("", 13), bg = "white")
+        self.infoLabel.pack()
+        self.infoLabel.place(relx = 0.5, rely = 0.4, anchor = CENTER)
 
-        version = tk.Label(text = "Versão: 1.15.8", font = ("", 7), bg = "white")
-        version.pack()
-        version.place(relx = 0.05, rely = 0.98, anchor = CENTER)
+        self.versionLabel = tk.Label(text = "Versão: 1.15.8", font = ("", 7), bg = "white")
+        self.versionLabel.pack()
+        self.versionLabel.place(relx = 0.05, rely = 0.98, anchor = CENTER)
 
-        feitopor = tk.Label(text = "Programa criado por: Gianluca Notari Magnabosco da Silva", font = ("", 7), bg = "white")
-        feitopor.pack()
-        feitopor.place(relx = 0.84, rely = 0.98, anchor = CENTER)
+        self.creditsLabel = tk.Label(text = "Programa criado por: Gianluca Notari Magnabosco da Silva", font = ("", 7), bg = "white")
+        self.creditsLabel.pack()
+        self.creditsLabel.place(relx = 0.84, rely = 0.98, anchor = CENTER)
 
 
-    def validateLogin(self, username, password):
-        self.login = username.get()
-        self.passwd = password.get()
-        self.root.attributes("-topmost", True) 
-
+    def closeLoginPopUp(self):
         self.loginPopUp.destroy()
-        self.button1.configure(state = "disabled")
-
-        if self.login > "1" and self.passwd > "1":
-            self.button1.configure(state = "enabled")
-            try:
-                aux = os.environ["EPROC_LOGIN"]
-                aux2 = os.environ["EPROC_PASSWORD"]
-            except:
-                with open(".env", "a") as file:
-                    file.write(f'\nEPROC_LOGIN = "{self.login}"')
-                    file.write(f'\nEPROC_PASSWORD = "{self.passwd}"')
-            else:
-                db_passwd = os.environ["DATABASE_PASSWORD"]
-                with open(".env", "w") as file:
-                    file.write(f'DATABASE_PASSWORD = "{db_passwd}"')
-                    file.write(f'\nEPROC_LOGIN = "{self.login}"')
-                    file.write(f'\nEPROC_PASSWORD = "{self.passwd}"')                    
-        else:
-            self.button1.configure(state = "disabled")
-
-        return self.login, self.passwd
+        self.root.attributes("-topmost", True)
 
 
     def insert_login(self):
-            
         self.loginPopUp = tk.Toplevel(self.root)
 
         self.loginPopUp.title("Login ePROC")
         self.loginPopUp.attributes("-topmost", True)
-        self.loginPopUp.protocol("WM_DELETE_WINDOW", self.on_close_login)
-        self.center_window(240, 135, self.loginPopUp)
+        self.loginPopUp.protocol("WM_DELETE_WINDOW", self.closeLoginPopUp)
+        self.loginPopUp.resizable(0, 0)
 
-        tk.Label(self.loginPopUp, text = "Insira seu login e senha do ePROC:", font = ("Arial", 9)).place(relx = 0.50 , rely = 0.14, anchor = CENTER)
+        self.center_window(265, 135, self.loginPopUp)
 
-        usernameLabel = ttk.Label(self.loginPopUp, text = "Login: ")
-        usernameLabel.place(relx = 0.21, rely = 0.37, anchor = CENTER)
+        self.loginLabel = tk.Label(self.loginPopUp, text = "Insira seu login e senha do ePROC:", font = ("Arial", 9))
+        self.loginLabel.place(relx = 0.50 , rely = 0.14, anchor = CENTER)
+
+        self.usernameLabel = ttk.Label(self.loginPopUp, text = "Login: ")
+        self.usernameLabel.place(relx = 0.21, rely = 0.37, anchor = CENTER)
         username = tk.StringVar()
-        usernameEntry = ttk.Entry(self.loginPopUp, textvariable = username)
-        usernameEntry.place(relx = 0.56, rely = 0.37, anchor = CENTER)
+        self.usernameEntry = ttk.Entry(self.loginPopUp, textvariable = username)
+        self.usernameEntry.place(relx = 0.56, rely = 0.37, anchor = CENTER)
 
-        passwordLabel = ttk.Label(self.loginPopUp, text = "Senha: ")
-        passwordLabel.place(relx = 0.21, rely = 0.535, anchor = CENTER)
+        self.passwordLabel = ttk.Label(self.loginPopUp, text = "Senha: ")
+        self.passwordLabel.place(relx = 0.21, rely = 0.535, anchor = CENTER)
         password = tk.StringVar()
-        passwordEntry = ttk.Entry(self.loginPopUp, textvariable = password, show = '*')
-        passwordEntry.place(relx = 0.56, rely = 0.535, anchor = CENTER)
+        self.passwordEntry = ttk.Entry(self.loginPopUp, textvariable = password, show = '*')
+        self.passwordEntry.place(relx = 0.56, rely = 0.535, anchor = CENTER)
 
         validateLogin = partial(self.validateLogin, username, password)
 
-
-        loginButton = ttk.Button(self.loginPopUp, text = "Login", command = validateLogin)
-        loginButton.place(relx = 0.5, rely = 0.79, anchor = CENTER, width = 50) 
+        self.loginButton = ttk.Button(self.loginPopUp, text = "Login", command = validateLogin)
+        self.loginButton.place(relx = 0.5, rely = 0.79, anchor = CENTER, width = 50) 
     
         def handler(e):
             validateLogin()
 
         self.loginPopUp.bind("<Return>", handler)
 
+
+    def validateLogin(self, username, password):
+        self.login = username.get()
+        self.password = password.get()
+ 
+        self.startButton.configure(state = "disabled")
+
+        if not re.match("^[a-zA-Z]{2}\d{6}$", self.login) or len(self.password) < 4:
+            self.loginPopUp.attributes("-topmost", False)
+            tk.messagebox.showerror(title = "Atenção!", message = "Login inválido")
+            self.loginPopUp.attributes("-topmost", True)
+            self.startButton.configure(state = "disabled")
+
+            return False
+
+        self.startButton.configure(state = "enabled")
+
+        try:
+            aux = [os.environ["EPROC_LOGIN"], os.environ["EPROC_PASSWORD"]]
+        except:
+            with open(".env", "a") as file:
+                file.write(f'\nEPROC_LOGIN = "{self.login}"')
+                file.write(f'\nEPROC_PASSWORD = "{self.password}"')
+        else:
+            db_password = os.environ["DATABASE_PASSWORD"]
+            with open(".env", "w") as file:
+                file.write(f'DATABASE_PASSWORD = "{db_password}"')
+                file.write(f'\nEPROC_LOGIN = "{self.login}"')
+                file.write(f'\nEPROC_PASSWORD = "{self.password}"')
+
+        self.closeLoginPopUp()                 
+
+        return self.login, self.password
                 
 
     def changeLoadingLabel(self):
-        self.status = tk.Label(text = "Carregando... Aguarde" , wraplength = 200, font = ("", 9, "bold"), bg = "white")
-        self.status.pack()
-        self.status.place(relx = 0.5, rely = 0.7, anchor = CENTER)
-        self.status.update_idletasks()
+        self.statusLabel = tk.Label(text = "Carregando... Aguarde", wraplength = 200, font = ("", 9, "bold"), bg = "white")
+        self.statusLabel.pack()
+        self.statusLabel.place(relx = 0.5, rely = 0.7, anchor = CENTER)
+        self.statusLabel.update_idletasks()
 
 
     def changeButtonState(self, state):
-        self.button1.update_idletasks()
-        self.button1.configure(state = f"{state}d")
-        self.button1.update_idletasks()
+        self.startButton.update_idletasks()
+        self.startButton.configure(state = f"{state}d")
+        self.startButton.update_idletasks()
         time.sleep(1)
 
 
     def updateStatusLabel(self):
-        self.status1 = tk.Label(text = "Concluído!", wraplength = 200, font = ("", 9, "bold"), bg = "white")
-        self.status1.pack()
-        self.status1.place(relx = 0.5, rely = 0.7, anchor = CENTER)
-
-
-    def showSuccessPopUp(self):
-        self.status1.destroy()
-        self.on_closetop()
-
-
-    def on_closetop(self):
-        self.status2 = tk.Label(text = "As intimações foram importadas e se encontram no Google Agenda!", wraplength = 200, font = ("", 9, "bold"), bg = "white")
-        self.status2.pack()
-        self.status2.place(relx = 0.5, rely = 0.71, anchor = CENTER)
-        self.status2.update_idletasks()
-        close = messagebox.showinfo("Informação", "As intimações foram adicionadas no Google Agenda com sucesso!")
-        if close:
-            close2 = messagebox.askyesno("Sair","Deseja sair do programa?")
-            if close2:
-                self.root.destroy()
-            else:
-                self.status2.destroy()
-                self.status2.update_idletasks()
+        self.statusLabel.destroy()
+        self.statusLabel = tk.Label(text = "Concluído!", wraplength = 200, font = ("", 9, "bold"), bg = "white")
+        self.statusLabel.pack()
+        self.statusLabel.place(relx = 0.5, rely = 0.7, anchor = CENTER)
+        self.statusLabel.update_idletasks()
 
         
     def complete(self):
-        self.status.destroy()
         self.updateStatusLabel()
 
         closeconfirmation = messagebox.showinfo("Sucesso!", "O programa foi executado com sucesso!")
@@ -192,3 +183,24 @@ class AgendadorGUI():
             self.showSuccessPopUp()
 
         self.changeButtonState("enable")
+
+
+    def showSuccessPopUp(self):
+        self.statusLabel.destroy()
+        self.statusLabel.update_idletasks()
+        self.showSuccessConfirmation()
+
+
+    def showSuccessConfirmation(self):
+        self.statusLabel = tk.Label(text = "As intimações foram importadas e se encontram no Banco de Dados!", wraplength = 200, font = ("", 9, "bold"), bg = "white")
+        self.statusLabel.pack()
+        self.statusLabel.place(relx = 0.5, rely = 0.71, anchor = CENTER)
+        self.statusLabel.update_idletasks()
+        infoBox = messagebox.showinfo("Informação", "As intimações foram inseridas no Banco de Dados com sucesso!")
+        if infoBox:
+            closeConfirmation = messagebox.askyesno("Sair", "Deseja sair do programa?")
+            if closeConfirmation:
+                self.root.destroy()
+            else:
+                self.statusLabel.destroy()
+                self.statusLabel.update_idletasks()

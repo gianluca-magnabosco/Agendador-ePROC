@@ -7,6 +7,7 @@ import os
 import re
 from functions.aux_functions import connectDataBase
 
+
 class EprocFiles():
 
     final_file_name = ""
@@ -58,7 +59,6 @@ class EprocFiles():
 
 
     def getExcelData(self):
-
         for i in range(1, self.ws.max_row + 1):
             self.processNumbers.append(self.ws.cell(row = i, column = 1).value)
 
@@ -77,7 +77,6 @@ class EprocFiles():
 
 
     def stringifyDate(self):
-
         for date in self.activityDueDates:
             self.activityDueDatesStringified.append(date.strftime("%x"))
         
@@ -89,11 +88,12 @@ class EprocFiles():
 
     def formatProcessesNames(self):
         for i, partes in enumerate(self.processParts):
-            self.processParts[i] = self.regexString(partes)
+            self.processParts[i] = self.formatString(partes)
 
 
-    def regexString(self, string):
-        string = re.sub("\n\n\s\(\d+\)", "", string)
+    def formatString(self, string):
+        string = re.sub("\n{2}\s\(\d+\)", "", string)
+        string = re.sub("COOPERATIVA DE CREDITO DE LIVRE ADMISSAO DE ASSOCIADOS DO PLANALTO CATARINENSE - SICOOB CREDIPLANALTO SC/RS", "SICOOB CREDIPLANALTO SC/RS", string)
         string = re.sub("Exequente \n", "", string)
         string = re.sub("Executado \n", "", string)
         string = re.sub("Autor \n", "", string)
@@ -108,10 +108,9 @@ class EprocFiles():
 
 
     def addProcessesToDataBase(self):
+        
         con = connectDataBase()
-
         cur = con.cursor()
-
         cur.execute("CREATE TABLE IF NOT EXISTS agendadoreproc (num_processo CHAR(25), partes VARCHAR(500), data DATE, estado CHAR(8));")
 
         for i in range(len(self.processNumbers)):
@@ -124,7 +123,6 @@ class EprocFiles():
 
     @classmethod
     def resetFilesAndTables(cls):
-
         local_path = os.getcwd()
         for item in os.listdir(local_path):
             if item.endswith(".xls") or item.endswith(".xlsx"):
@@ -132,7 +130,10 @@ class EprocFiles():
 
         con = connectDataBase()
         cur = con.cursor()
+        
         cur.execute("DROP TABLE IF EXISTS agendadoreproc;")
+
         con.commit()
         cur.close()
         con.close()
+    

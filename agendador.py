@@ -4,32 +4,29 @@ from functions.aux_functions import createDesktopShortcut
 from classes.webbrowser import WebBrowser
 from classes.eprocfiles import EprocFiles
 from classes.agendadorgui import AgendadorGUI
+from classes.windowsnotifier import WindowsNotifier
 
 
 class ChildGUI(AgendadorGUI):
 
     def initButtons(self):
-        st = ttk.Style()
-        st.configure("W.TButton", background = "white", foreground = "black", font = ("Open Sans", 11))
-        button_login = ttk.Button(self.root, style = "W.TButton", text = "  Login\nePROC", command = self.insert_login, width = 50.75)
-        button_login.pack()
-        button_login.place(relx = 0.23, rely = 0.72, anchor = CENTER)
+        self.buttonStyle = ttk.Style()
+        self.buttonStyle.configure("W.TButton", background = "white", foreground = "black", font = ("Open Sans", 11))
+        
+        self.rootLoginButton = ttk.Button(self.root, style = "W.TButton", text = "  Login\nePROC", command = self.insert_login, width = 50.75)
+        self.rootLoginButton.pack()
+        self.rootLoginButton.place(relx = 0.23, rely = 0.72, anchor = CENTER)
 
-        st = ttk.Style()
-        st.configure("W.TButton", background = "white", foreground = "black", font = ("Open Sans", 11))
-        self.button1 = ttk.Button(self.root, style = "W.TButton", text = "Clique aqui para iniciar o programa", command = runcode, width = 27.75)
-        self.button1.pack()
-        self.button1.place(relx = 0.5, rely = 0.65, anchor = CENTER)
-        self.button1.configure(state = "disabled")
+        self.startButton = ttk.Button(self.root, style = "W.TButton", text = "Clique aqui para iniciar o programa", command = start, width = 27.75)
+        self.startButton.pack()
+        self.startButton.place(relx = 0.5, rely = 0.65, anchor = CENTER)
+        self.startButton.configure(state = "disabled")
 
 
-def runcode():
-    programGUI.changeLoadingLabel()
-    programGUI.changeButtonState("disable")
-
+def getProcessesData():
     EprocFiles.resetFilesAndTables()
 
-    browser = WebBrowser(programGUI.login, programGUI.passwd)
+    browser = WebBrowser(programGUI.login, programGUI.password)
     browser.startBrowser()
 
     scFile = EprocFiles("sc")
@@ -37,6 +34,17 @@ def runcode():
 
     prFile = EprocFiles("pr")
     prFile.initFile()
+
+    notifier = WindowsNotifier()
+    notifier.sendNotifications()
+
+
+ 
+def start():
+    programGUI.changeLoadingLabel()
+    programGUI.changeButtonState("disable")
+
+    getProcessesData()
 
     programGUI.complete()
 
@@ -57,7 +65,7 @@ if __name__ == "__main__":
 #
 #
 #
-# python -m PyInstaller --onedir --windowed --icon=icone.ico --name="Agendador ePROC" agendador.py
+# python -m PyInstaller --onedir --windowed --icon=icone.ico --name="Agendador ePROC" -F --add-data "Winico;winico" agendador.py
 #
 #
 #
