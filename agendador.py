@@ -5,7 +5,8 @@ from classes.webbrowser import WebBrowser
 from classes.eprocfiles import EprocFiles
 from classes.agendadorgui import AgendadorGUI
 from classes.windowsnotifier import WindowsNotifier
-
+from threading import Thread
+import time
 
 class ChildGUI(AgendadorGUI):
 
@@ -26,8 +27,13 @@ class ChildGUI(AgendadorGUI):
 def getProcessesData():
     EprocFiles.resetFilesAndTables()
 
-    browser = WebBrowser(programGUI.login, programGUI.password)
-    browser.startBrowser()
+    browser = WebBrowser(programGUI.login, programGUI.password, thread = True)
+
+    thread = Thread(target = browser.startBrowser(), daemon = True)
+    thread.start()
+
+    while browser.thread is True:
+        time.sleep(1)
 
     scFile = EprocFiles("sc")
     scFile.initFile()
@@ -45,10 +51,10 @@ def start():
     programGUI.changeButtonState("disable")
 
     getProcessesData()
-
+     
     programGUI.complete()
 
-
+ 
 def main():
     global programGUI
 

@@ -3,7 +3,6 @@ from tkinter import messagebox
 from tkinter import ttk
 from tkinter.constants import CENTER
 from functools import partial
-import time
 import os
 import re
 from dotenv.main import load_dotenv
@@ -161,10 +160,12 @@ class AgendadorGUI():
 
 
     def changeButtonState(self, state):
-        self.startButton.update_idletasks()
-        self.startButton.configure(state = f"{state}d")
-        self.startButton.update_idletasks()
-        time.sleep(1)
+        try:
+            self.startButton.update_idletasks()
+            self.startButton.configure(state = f"{state}d")
+            self.startButton.update_idletasks()
+        except:
+            pass
 
 
     def updateStatusLabel(self):
@@ -198,9 +199,8 @@ class AgendadorGUI():
         self.statusLabel.update_idletasks()
         infoBox = messagebox.showinfo("Informação", "As intimações foram inseridas no Banco de Dados com sucesso!")
         if infoBox:
+            self.statusLabel.destroy()
+            self.statusLabel.update_idletasks()
             closeConfirmation = messagebox.askyesno("Sair", "Deseja sair do programa?")
             if closeConfirmation:
                 self.root.destroy()
-            else:
-                self.statusLabel.destroy()
-                self.statusLabel.update_idletasks()
