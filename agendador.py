@@ -46,6 +46,10 @@ class ChildGUI(AgendadorGUI):
 def getProcessesData():
     EprocFiles.resetFilesAndTables()
 
+    if len(programGUI.login) < 6 or len(programGUI.password) < 4:
+        programGUI.initGUI()
+        return
+
     try:
         browser = WebBrowser(programGUI.login, programGUI.password)
     except:
@@ -56,6 +60,14 @@ def getProcessesData():
 
     while browser.thread is True:
         time.sleep(1)
+    
+    if browser.loginFail is True:
+        programGUI.loginFail = True
+        programGUI.initGUI()
+        return
+
+    if programGUI.active is True:
+        programGUI.root.update()
 
     scFile = EprocFiles("sc")
     scFile.initFile()
@@ -63,6 +75,8 @@ def getProcessesData():
     prFile = EprocFiles("pr")
     prFile.initFile()
 
+    if programGUI.active is True:
+        programGUI.updateStatusLabel("Enviando notificações...", destroy = True)
     notifier = WindowsNotifier()
     notifier.sendNotifications()
 

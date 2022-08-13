@@ -1,4 +1,3 @@
-from subprocess import CREATE_NO_WINDOW
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -20,6 +19,7 @@ class WebBrowser():
 
 
     def startBrowser(self):
+        self.loginFail = False
         localPath = os.getcwd()
 
         preferences = {"download.default_directory": localPath, "directory_upgrade": True}
@@ -35,7 +35,16 @@ class WebBrowser():
         self.driver.implicitly_wait(60)
         self.driver.get("https://eproc1g.tjsc.jus.br/eproc/externo_controlador.php?acao=principal")
 
-        self.eprocLogin()
+        if not self.eprocLogin():
+            db_password = os.environ["DATABASE_PASSWORD"]
+            with open(".env", "w") as file:
+                file.write(f'DATABASE_PASSWORD = "{db_password}"')
+                file.close()
+
+            self.loginFail = True
+            self.thread = False
+            self.driver.quit()
+            return
 
         self.downloadFile("tr0")
         self.goBack()
@@ -68,6 +77,11 @@ class WebBrowser():
 
         loginButton = self.getElement(By.ID, "sbmEntrar")
         loginButton.click()
+        
+        if self.driver.current_url == "https://eproc1g.tjsc.jus.br/eproc/externo_controlador.php?acao=principal&acao_retorno=login_invalido":
+            return False
+
+        return True
 
 
     def goBack(self):

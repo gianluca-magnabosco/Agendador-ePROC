@@ -1,3 +1,4 @@
+from email.policy import default
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
@@ -13,6 +14,7 @@ class AgendadorGUI():
 
     root = None
     active = False
+    loginFail = False
 
     def centerWindow(self, width, height, window):
         screen_width = self.root.winfo_screenwidth()
@@ -59,20 +61,30 @@ class AgendadorGUI():
 
         self.initComponents()
 
-        load_dotenv()
-
         try:
-            self.login = os.environ["EPROC_LOGIN"]
-            self.password = os.environ["EPROC_PASSWORD"]
+            with open(".env", "r") as file:
+                file.readline()
+                self.login = file.readline()[15:-2]
+                self.password = file.readline()[18:-1]
+                if len(self.login) < 6 or len(self.password) < 4:
+                    raise Exception
         except:
-            self.insert_login()
+            if self.loginFail is True:
+                self.loginFail = False
+                confirm = messagebox.showerror(title = "Erro no login", message = "Login ou senha do ePROC incorretos!")
+                if confirm:
+                    self.insert_login()
+            else:
+                self.insert_login()
         else:
-            if re.match("^[a-zA-Z]{2}\d{6}$", os.environ["EPROC_LOGIN"]):
+            if re.match("^[a-zA-Z]{2}\d{6}$", self.login):
                 self.changeButtonState("enabled")
             else:
                 self.insert_login()
+        
 
         self.root.mainloop()
+
 
 
     def initComponents(self):
@@ -122,7 +134,15 @@ class AgendadorGUI():
         self.root.attributes("-topmost", True)
 
 
+    def togglePassword(self):
+        if self.passwordEntry.cget("show") == '*':
+            self.passwordEntry.config(show = '')
+        else:
+            self.passwordEntry.config(show = '*')
+
+
     def insert_login(self):
+        load_dotenv()
         self.loginPopUp = tk.Toplevel(self.root)
 
         self.loginPopUp.title("Login ePROC")
@@ -137,21 +157,41 @@ class AgendadorGUI():
 
         self.usernameLabel = ttk.Label(self.loginPopUp, text = "Login: ")
         self.usernameLabel.place(relx = 0.21, rely = 0.37, anchor = CENTER)
-        username = tk.StringVar()
-        self.usernameEntry = ttk.Entry(self.loginPopUp, textvariable = username)
+        self.usernameVariable = tk.StringVar()
+        self.usernameEntry = ttk.Entry(self.loginPopUp, textvariable = self.usernameVariable)
         self.usernameEntry.place(relx = 0.56, rely = 0.37, anchor = CENTER)
+
 
         self.passwordLabel = ttk.Label(self.loginPopUp, text = "Senha: ")
         self.passwordLabel.place(relx = 0.21, rely = 0.535, anchor = CENTER)
-        password = tk.StringVar()
-        self.passwordEntry = ttk.Entry(self.loginPopUp, textvariable = password, show = '*')
+        self.passwordVariable = tk.StringVar()
+        self.passwordEntry = ttk.Entry(self.loginPopUp, textvariable = self.passwordVariable, show = '*')
         self.passwordEntry.place(relx = 0.56, rely = 0.535, anchor = CENTER)
 
-        validateLogin = partial(self.validateLogin, username, password)
+        validateLogin = partial(self.validateLogin, self.usernameVariable, self.passwordVariable)
+
+        self.revealPasswordCheckBox = tk.Checkbutton(self.loginPopUp, command = self.togglePassword, variable = self.passwordEntry)
+        self.revealPasswordCheckBox.place(relx = 0.9, rely = 0.535, anchor = CENTER)
+
+        self.revealPasswordLabel = ttk.Label(self.loginPopUp, text = "Mostrar")
+        self.revealPasswordLabel.place(relx = 0.9, rely = 0.65, anchor = CENTER)
+
 
         self.loginButton = ttk.Button(self.loginPopUp, text = "Login", command = validateLogin)
-        self.loginButton.place(relx = 0.5, rely = 0.79, anchor = CENTER, width = 50) 
+        self.loginButton.place(relx = 0.5, rely = 0.79, anchor = CENTER, width = 50)
+
     
+        try:
+            with open(".env", "r") as file:
+                file.readline()
+                currentUsername = file.readline()[15:-2]
+                currentPassword = file.readline()[18:-1]
+        except:
+            pass
+        else:
+            self.usernameEntry.insert(0, currentUsername)
+            self.passwordEntry.insert(0, currentPassword)
+
         def handler(e):
             validateLogin()
 
@@ -161,14 +201,13 @@ class AgendadorGUI():
     def regexMatchUserInfo(self):
         if not re.match("^[a-zA-Z]{2}\d{6}$", self.login) or len(self.password) < 4:
             self.loginPopUp.attributes("-topmost", False)
-            tk.messagebox.showerror(title = "Atenção!", message = "Login inválido")
+            messagebox.showerror(title = "Atenção!", message = "Login inválido")
             self.loginPopUp.attributes("-topmost", True)
             
             return False
 
         return True
         
-
 
     def validateLogin(self, username, password):
         self.login = username.get()
@@ -219,6 +258,7 @@ class AgendadorGUI():
                 
     
     def complete(self):
+        self.root.update()
         self.updateStatusLabel("Concluído!", destroy = True)
 
         closeconfirmation = messagebox.showinfo("Sucesso!", "O programa foi executado com sucesso!")
