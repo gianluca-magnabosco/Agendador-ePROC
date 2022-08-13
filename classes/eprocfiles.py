@@ -1,4 +1,6 @@
 import pyexcel as p
+import pyexcel_xls
+import pyexcel_xlsx
 from openpyxl import load_workbook
 import glob
 import os
@@ -128,9 +130,12 @@ class EprocFiles():
     @classmethod
     def resetFilesAndTables(cls):
         local_path = os.getcwd()
-        for item in os.listdir(local_path):
-            if item.endswith(".xls") or item.endswith(".xlsx"):
-                os.remove(os.path.join(local_path, item))
+        regex = re.compile(".+\.crdownload")
+        for file in os.listdir(local_path):
+            if regex.match(file):
+                os.remove(os.path.join(local_path, file))
+            if file.endswith(".xls") or file.endswith(".xlsx"):
+                os.remove(os.path.join(local_path, file))
 
         con = connectDataBase()
         cur = con.cursor()

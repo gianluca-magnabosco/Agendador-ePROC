@@ -42,7 +42,6 @@ class AgendadorGUI():
             self.root.destroy()
             self.active = False
             self.root = None
-            self.initGUI()
             return
 
         self.root = tk.Tk()
@@ -159,36 +158,62 @@ class AgendadorGUI():
         self.loginPopUp.bind("<Return>", handler)
 
 
-    def validateLogin(self, username, password):
-        self.login = username.get()
-        self.password = password.get()
- 
-        self.startButton.configure(state = "disabled")
-
+    def regexMatchUserInfo(self):
         if not re.match("^[a-zA-Z]{2}\d{6}$", self.login) or len(self.password) < 4:
             self.loginPopUp.attributes("-topmost", False)
             tk.messagebox.showerror(title = "Atenção!", message = "Login inválido")
             self.loginPopUp.attributes("-topmost", True)
-            self.startButton.configure(state = "disabled")
-
+            
             return False
 
-        self.startButton.configure(state = "enabled")
+        return True
+        
 
+
+    def validateLogin(self, username, password):
+        self.login = username.get()
+        self.password = password.get()
+        load_dotenv()
+ 
+        try:
+            aux = [os.environ["EPROC_LOGIN"], os.environ["EPROC_PASSWORD"]]
+        except:
+            self.startButton.configure(state = "disabled")
+        else:
+            if not self.regexMatchUserInfo():
+                self.login = os.environ["EPROC_LOGIN"]
+                self.password = os.environ["EPROC_PASSWORD"]
+                self.startButton.configure(state = "enabled")
+                self.closeLoginPopUp()
+
+                return self.login, self.password
+
+        if not self.regexMatchUserInfo():
+            return False
+        
         try:
             aux = [os.environ["EPROC_LOGIN"], os.environ["EPROC_PASSWORD"]]
         except:
             with open(".env", "a") as file:
                 file.write(f'\nEPROC_LOGIN = "{self.login}"')
                 file.write(f'\nEPROC_PASSWORD = "{self.password}"')
+                file.close()
         else:
             db_password = os.environ["DATABASE_PASSWORD"]
             with open(".env", "w") as file:
                 file.write(f'DATABASE_PASSWORD = "{db_password}"')
                 file.write(f'\nEPROC_LOGIN = "{self.login}"')
                 file.write(f'\nEPROC_PASSWORD = "{self.password}"')
+                file.close()
 
-        self.closeLoginPopUp()                 
+
+        with open(".env", "r") as file:
+            file.readline()
+            self.login = file.readline()[15:-2]
+            self.password = file.readline()[18:-1]
+
+        self.startButton.configure(state = "enabled")
+        self.closeLoginPopUp()
 
         return self.login, self.password
                 

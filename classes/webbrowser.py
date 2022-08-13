@@ -1,10 +1,14 @@
+from subprocess import CREATE_NO_WINDOW
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
+from subprocess import CREATE_NO_WINDOW
 import time
 import os
+import re
 
 
 class WebBrowser():
@@ -24,22 +28,28 @@ class WebBrowser():
         options.add_argument("--headless")
         options.add_experimental_option("prefs", preferences)                   
 
+        chrome_service = ChromeService("chromedriver")
+        chrome_service.creationflags = CREATE_NO_WINDOW
         driverPath = "/chromedriver.exe"
-        self.driver = webdriver.Chrome(executable_path = localPath + driverPath, options = options)
+        self.driver = webdriver.Chrome(service = chrome_service, executable_path = localPath + driverPath, options = options)
         self.driver.implicitly_wait(60)
         self.driver.get("https://eproc1g.tjsc.jus.br/eproc/externo_controlador.php?acao=principal")
 
         self.eprocLogin()
 
-        folderFilesCount = len(os.listdir(localPath))
-
         self.downloadFile("tr0")
         self.goBack()
         self.downloadFile("tr1")
 
-        
-        while len(os.listdir(localPath)) != folderFilesCount + 2:
+        regex = re.compile(".+\.crdownload")
+        i = 0
+        while any(regex.match(filename) for filename in os.listdir(localPath)) or i != 2:
             time.sleep(1)
+            i = 0
+            for file in os.listdir(localPath):
+                if file.endswith(".xls"):
+                    i += 1
+
 
         self.thread = False
         self.driver.quit()

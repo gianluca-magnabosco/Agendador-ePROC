@@ -105,7 +105,7 @@ if __name__ == "__main__":
 #
 #
 #
-# python -m PyInstaller --onedir --windowed --icon=icon.ico --name="Agendador ePROC" -F --add-data "Winico;winico" agendador.py
+# python3 -m PyInstaller --noconsole --onedir --icon=img/icon.ico --name="Agendador ePROC" agendador.py
 #
 #
 #
