@@ -1,6 +1,4 @@
 import pyexcel as p
-import pyexcel_xls
-import pyexcel_xlsx
 from openpyxl import load_workbook
 import glob
 import os
@@ -92,7 +90,7 @@ class EprocFiles():
 
 
     def formatString(self, string):
-        string = re.sub("\n{2}\s\(\d+\)", "", string)
+        string = re.sub("\n*\s*\(\d+\)", "", string)
         string = re.sub("COOPERATIVA DE CREDITO DE LIVRE ADMISSAO DE ASSOCIADOS DO PLANALTO CATARINENSE - SICOOB CREDIPLANALTO SC/RS", "SICOOB CREDIPLANALTO SC/RS", string)
         string = re.sub("Exequente \n", "", string)
         string = re.sub("Executado \n", "", string)
@@ -103,6 +101,12 @@ class EprocFiles():
         string = re.sub("Requerente \n", "", string)
         string = re.sub("Requerido \n", "", string)
         string = re.sub("\s\n", "\n", string)
+
+        string = string.split("\n")
+        if len(string) == 1:
+            string = f"{string[0]}"
+        else:
+            string = f"{string[0][:27]}\n{string[1]}\n{string[2][:27]}"
 
         return string
 

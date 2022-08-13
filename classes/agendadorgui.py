@@ -3,15 +3,18 @@ from tkinter import messagebox
 from tkinter import ttk
 from tkinter.constants import CENTER
 from functools import partial
-import os
 import re
 from dotenv.main import load_dotenv
+import sys
+import os
+
 
 class AgendadorGUI():
 
-    root = tk.Tk()
+    root = None
+    active = False
 
-    def center_window(self, width, height, window):
+    def centerWindow(self, width, height, window):
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
         x = (screen_width / 2) - (width / 2)
@@ -19,19 +22,38 @@ class AgendadorGUI():
         window.geometry("%dx%d+%d+%d" % (width, height, x, y))
 
 
-    def on_closeroot(self):
+    def onCloseRoot(self):
+        self.root.destroy()
+        self.active = False
+        self.root = None
+        
+    
+    def closeRootTray(self):
         close = messagebox.askokcancel("Confirmação", "Tem certeza que deseja fechar o programa?")
         if close:
-            self.root.destroy()
+            if self.root is not None:
+                self.root.destroy()
+            self.trayIcon.stop()
+            sys.exit()
 
 
     def initGUI(self):
-        iconFile = "img/icone.ico"
-        self.center_window(860, 640, self.root)
+        if self.root is not None and self.active is True:
+            self.root.destroy()
+            self.active = False
+            self.root = None
+            self.initGUI()
+            return
+
+        self.root = tk.Tk()
+        self.active = True
+
+        iconFile = "img/icon.ico"
+        self.centerWindow(860, 640, self.root)
         self.root.title("Agendador ePROC")
-        self.root.protocol("WM_DELETE_WINDOW", self.on_closeroot)
+        self.root.protocol("WM_DELETE_WINDOW", self.onCloseRoot)
         self.root.iconbitmap(default = iconFile)
-        self.root.resizable(0, 0)
+        self.root.resizable(False, False)
         backgroundImage = tk.PhotoImage(file = "img/background.png")
         backgroundLabel = ttk.Label(self.root, image = backgroundImage)
         backgroundLabel.place(relx = 0.5, rely = 0.5, anchor = CENTER)
@@ -77,6 +99,25 @@ class AgendadorGUI():
         self.creditsLabel.place(relx = 0.84, rely = 0.98, anchor = CENTER)
 
 
+    def changeButtonState(self, state):
+        try:
+            self.startButton.update_idletasks()
+            self.startButton.configure(state = f"{state}d")
+            self.startButton.update_idletasks()
+        except:
+            pass
+
+
+    def updateStatusLabel(self, text, destroy = False):
+        if destroy is True:
+            self.statusLabel.destroy()
+
+        self.statusLabel = tk.Label(text = text, wraplength = 200, font = ("", 9, "bold"), bg = "white")
+        self.statusLabel.pack()
+        self.statusLabel.place(relx = 0.5, rely = 0.7, anchor = CENTER)
+        self.statusLabel.update_idletasks()
+
+
     def closeLoginPopUp(self):
         self.loginPopUp.destroy()
         self.root.attributes("-topmost", True)
@@ -88,9 +129,9 @@ class AgendadorGUI():
         self.loginPopUp.title("Login ePROC")
         self.loginPopUp.attributes("-topmost", True)
         self.loginPopUp.protocol("WM_DELETE_WINDOW", self.closeLoginPopUp)
-        self.loginPopUp.resizable(0, 0)
+        self.loginPopUp.resizable(False, False)
 
-        self.center_window(265, 135, self.loginPopUp)
+        self.centerWindow(265, 135, self.loginPopUp)
 
         self.loginLabel = tk.Label(self.loginPopUp, text = "Insira seu login e senha do ePROC:", font = ("Arial", 9))
         self.loginLabel.place(relx = 0.50 , rely = 0.14, anchor = CENTER)
@@ -151,33 +192,9 @@ class AgendadorGUI():
 
         return self.login, self.password
                 
-
-    def changeLoadingLabel(self):
-        self.statusLabel = tk.Label(text = "Carregando... Aguarde", wraplength = 200, font = ("", 9, "bold"), bg = "white")
-        self.statusLabel.pack()
-        self.statusLabel.place(relx = 0.5, rely = 0.7, anchor = CENTER)
-        self.statusLabel.update_idletasks()
-
-
-    def changeButtonState(self, state):
-        try:
-            self.startButton.update_idletasks()
-            self.startButton.configure(state = f"{state}d")
-            self.startButton.update_idletasks()
-        except:
-            pass
-
-
-    def updateStatusLabel(self):
-        self.statusLabel.destroy()
-        self.statusLabel = tk.Label(text = "Concluído!", wraplength = 200, font = ("", 9, "bold"), bg = "white")
-        self.statusLabel.pack()
-        self.statusLabel.place(relx = 0.5, rely = 0.7, anchor = CENTER)
-        self.statusLabel.update_idletasks()
-
-        
+    
     def complete(self):
-        self.updateStatusLabel()
+        self.updateStatusLabel("Concluído!", destroy = True)
 
         closeconfirmation = messagebox.showinfo("Sucesso!", "O programa foi executado com sucesso!")
         if closeconfirmation:
@@ -193,14 +210,13 @@ class AgendadorGUI():
 
 
     def showSuccessConfirmation(self):
-        self.statusLabel = tk.Label(text = "As intimações foram importadas e se encontram no Banco de Dados!", wraplength = 200, font = ("", 9, "bold"), bg = "white")
-        self.statusLabel.pack()
-        self.statusLabel.place(relx = 0.5, rely = 0.71, anchor = CENTER)
-        self.statusLabel.update_idletasks()
-        infoBox = messagebox.showinfo("Informação", "As intimações foram inseridas no Banco de Dados com sucesso!")
+        self.updateStatusLabel("As notificações foram enviadas para a barra lateral do Windows!")
+        infoBox = messagebox.showinfo("Informação", "As notificações foram enviadas com sucesso!")
         if infoBox:
             self.statusLabel.destroy()
             self.statusLabel.update_idletasks()
-            closeConfirmation = messagebox.askyesno("Sair", "Deseja sair do programa?")
+            closeConfirmation = messagebox.askyesno("Minimizar", "Deseja minimizar o programa?")
             if closeConfirmation:
                 self.root.destroy()
+                self.root = None
+                self.active = False

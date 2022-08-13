@@ -23,7 +23,7 @@ def createDesktopShortcut():
     desktop = winshell.desktop()
     shortcutPath = os.path.join(desktop, "Agendador ePROC.lnk")
     target = os.path.join(local_path, "Agendador ePROC.exe")
-    iconPath = os.path.join(local_path, "img/icone.ico")
+    iconPath = os.path.join(local_path, "img/icon.ico")
 
     if not os.path.exists(shortcutPath):
         shell = Dispatch('WScript.Shell')

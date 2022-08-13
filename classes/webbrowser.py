@@ -9,10 +9,10 @@ import os
 
 class WebBrowser():
 
-    def __init__(self, login, passwd, thread):
+    def __init__(self, login, passwd):
         self.login = login
         self.passwd = passwd
-        self.thread = thread
+        self.thread = True
 
 
     def startBrowser(self):
@@ -26,7 +26,7 @@ class WebBrowser():
 
         driverPath = "/chromedriver.exe"
         self.driver = webdriver.Chrome(executable_path = localPath + driverPath, options = options)
-        self.driver.implicitly_wait(30)
+        self.driver.implicitly_wait(60)
         self.driver.get("https://eproc1g.tjsc.jus.br/eproc/externo_controlador.php?acao=principal")
 
         self.eprocLogin()

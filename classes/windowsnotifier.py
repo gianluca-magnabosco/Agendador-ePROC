@@ -1,6 +1,6 @@
 import datetime
-from win10toast import ToastNotifier
 from functions.aux_functions import connectDataBase
+from notifypy import Notify
 
 
 class WindowsNotifier():
@@ -10,7 +10,6 @@ class WindowsNotifier():
         self.processNumbers = []
         self.processParts = []
         self.activityDueDates = []
-        self.toaster = ToastNotifier()
 
 
     def setWeeklyDueDates(self):
@@ -22,6 +21,7 @@ class WindowsNotifier():
 
         con = connectDataBase()
         cur = con.cursor()
+
         cur.execute(f"SELECT * FROM agendadoreproc WHERE data BETWEEN '{self.dateToday}' AND '{self.dateOneWeekFromNow}' ORDER BY data DESC, num_processo DESC;")
         result = cur.fetchall()
 
@@ -45,10 +45,14 @@ class WindowsNotifier():
         self.setWeeklyDueDates()
 
         for i in range(len(self.processNumbers)):
-            try:
-                self.toaster.show_toast(f"Processo nº {self.processNumbers[i]}\nPrazo: {self.activityDueDates[i]}",
-                                f"{self.processParts[i]}\n{self.eprocState[i]}",
-                                icon_path = "img/icone.ico",
-                                duration = None)
-            except:
-                pass
+            notification = Notify()
+            notification.application_name = "Intimações Pendentes"
+            notification.title = f"{self.processNumbers[i]}\nPrazo: {self.activityDueDates[i]}"
+            notification.message = f"{self.processParts[i]}\n{self.eprocState[i]}"
+
+            if self.eprocState[i] == "(𝐞𝐩𝐫𝐨𝐜-𝐒𝐂)":
+                notification.icon = "img/scNotificationIcon.ico"
+            else:
+                notification.icon = "img/prNotificationIcon.ico"
+
+            notification.send()
