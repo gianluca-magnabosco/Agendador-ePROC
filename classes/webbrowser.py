@@ -8,7 +8,7 @@ from subprocess import CREATE_NO_WINDOW
 import time
 import os
 import re
-
+from tkinter import messagebox
 
 class WebBrowser():
 
@@ -19,6 +19,7 @@ class WebBrowser():
 
 
     def startBrowser(self):
+        self.error = False
         self.loginFail = False
         localPath = os.getcwd()
 
@@ -31,9 +32,17 @@ class WebBrowser():
         chrome_service = ChromeService("chromedriver")
         chrome_service.creationflags = CREATE_NO_WINDOW
         driverPath = "/chromedriver.exe"
-        self.driver = webdriver.Chrome(service = chrome_service, executable_path = localPath + driverPath, options = options)
-        self.driver.implicitly_wait(60)
-        self.driver.get("https://eproc1g.tjsc.jus.br/eproc/externo_controlador.php?acao=principal")
+
+        try:
+            self.driver = webdriver.Chrome(service = chrome_service, executable_path = localPath + driverPath, options = options)
+            self.driver.implicitly_wait(60)
+            self.driver.get("https://eproc1g.tjsc.jus.br/eproc/externo_controlador.php?acao=principal")
+        except:
+            messagebox.showerror(title = "Erro", message = "Um erro inesperado ocorreu!\nTente novamente mais tarde")
+            self.error = True
+            self.thread = False
+            self.driver.quit()
+            return
 
         if not self.eprocLogin():
             db_password = os.environ["DATABASE_PASSWORD"]
@@ -46,9 +55,16 @@ class WebBrowser():
             self.driver.quit()
             return
 
-        self.downloadFile("tr0")
-        self.goBack()
-        self.downloadFile("tr1")
+        try:
+            self.downloadFile("tr0")
+            self.goBack()
+            self.downloadFile("tr1")
+        except:
+            messagebox.showerror(title = "Erro no download", message = "Um erro inesperado ocorreu!\nTente novamente mais tarde")
+            self.error = True
+            self.thread = False
+            self.driver.quit()
+            return
 
         regex = re.compile(".+\.crdownload")
         i = 0
@@ -69,14 +85,21 @@ class WebBrowser():
 
 
     def eprocLogin(self):
-        loginField = self.getElement(By.ID, "txtUsuario")
-        loginField.send_keys(self.login)
+        try:
+            loginField = self.getElement(By.ID, "txtUsuario")
+            loginField.send_keys(self.login)
 
-        passwordField = self.getElement(By.ID, "pwdSenha")
-        passwordField.send_keys(self.passwd)
+            passwordField = self.getElement(By.ID, "pwdSenha")
+            passwordField.send_keys(self.passwd)
 
-        loginButton = self.getElement(By.ID, "sbmEntrar")
-        loginButton.click()
+            loginButton = self.getElement(By.ID, "sbmEntrar")
+            loginButton.click()
+        except:
+            messagebox.showerror(title = "Erro no login", message = "Um erro inesperado ocorreu!\nTente novamente mais tarde")
+            self.error = True
+            self.thread = False
+            self.driver.quit()
+            return
         
         if self.driver.current_url == "https://eproc1g.tjsc.jus.br/eproc/externo_controlador.php?acao=principal&acao_retorno=login_invalido":
             return False

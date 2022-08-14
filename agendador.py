@@ -44,6 +44,7 @@ class ChildGUI(AgendadorGUI):
 
 
 def getProcessesData():
+    global browser
     EprocFiles.resetFilesAndTables()
 
     if len(programGUI.login) < 6 or len(programGUI.password) < 4:
@@ -66,6 +67,11 @@ def getProcessesData():
         programGUI.initGUI()
         return
 
+    if browser.error is True:
+        if programGUI.active is False:
+            programGUI.initGUI(error = True)
+        return
+
     if programGUI.active is True:
         programGUI.root.update()
 
@@ -77,6 +83,7 @@ def getProcessesData():
 
     if programGUI.active is True:
         programGUI.updateStatusLabel("Enviando notificações...", destroy = True)
+
     notifier = WindowsNotifier()
     notifier.sendNotifications()
 
@@ -86,8 +93,9 @@ def start():
     programGUI.changeButtonState("disable")
 
     getProcessesData()
-     
-    programGUI.complete()
+    
+    programGUI.complete(error = browser.error)
+
 
  
 def main():

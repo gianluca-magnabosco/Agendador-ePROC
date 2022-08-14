@@ -1,4 +1,3 @@
-from email.policy import default
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
@@ -39,7 +38,7 @@ class AgendadorGUI():
             sys.exit()
 
 
-    def initGUI(self):
+    def initGUI(self, error = False):
         if self.root is not None and self.active is True:
             self.root.destroy()
             self.active = False
@@ -52,13 +51,16 @@ class AgendadorGUI():
         iconFile = "img/icon.ico"
         self.centerWindow(860, 640, self.root)
         self.root.title("Agendador ePROC")
+        if error is True:
+            self.root.attributes("-topmost", True)
+            
         self.root.protocol("WM_DELETE_WINDOW", self.onCloseRoot)
         self.root.iconbitmap(default = iconFile)
         self.root.resizable(False, False)
         backgroundImage = tk.PhotoImage(file = "img/background.png")
         backgroundLabel = ttk.Label(self.root, image = backgroundImage)
         backgroundLabel.place(relx = 0.5, rely = 0.5, anchor = CENTER)
-
+    
         self.initComponents()
 
         try:
@@ -257,7 +259,14 @@ class AgendadorGUI():
         return self.login, self.password
                 
     
-    def complete(self):
+    def complete(self, error = False):
+        if error is True:
+            self.statusLabel.destroy()
+            self.statusLabel.update_idletasks()
+            self.changeButtonState("enable")
+            self.root.update()
+            return
+
         self.root.update()
         self.updateStatusLabel("Concluído!", destroy = True)
 
