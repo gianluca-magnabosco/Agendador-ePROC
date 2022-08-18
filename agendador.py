@@ -11,6 +11,9 @@ from dotenv.main import load_dotenv
 from threading import Thread
 import time
 import os
+import sys
+import psutil
+from tkinter import messagebox
 
 
 class ChildGUI(AgendadorGUI):
@@ -33,7 +36,7 @@ class ChildGUI(AgendadorGUI):
         self.iconImage = Image.open("img/icon.ico")
 
         self.trayMenu = menu(
-                                item("Abrir", self.initGUI, default = True),
+                                item("Mostrar/Esconder", self.initGUI, default = True),
                                 item("Enviar notificações", getProcessesData),
                                 item("Fechar programa", self.closeRootTray)
                             )
@@ -99,6 +102,16 @@ def start():
 
  
 def main():
+    processos = 0
+    for pid in psutil.pids():
+        p = psutil.Process(pid)
+        if p.name().startswith("Agendador"):
+            processos += 1
+    
+    if processos >= 2:
+        messagebox.showwarning("Programa aberto!", "O programa já está aberto!\nProcure pelo ícone na barra de tarefas")
+        sys.exit()
+
     global programGUI
 
     load_dotenv()
